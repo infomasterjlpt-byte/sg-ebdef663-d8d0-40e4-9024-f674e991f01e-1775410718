@@ -7,17 +7,17 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { getQuestions, saveQuestionResult } from "@/services/questionService";
+import { getRandomQuestions, saveQuestionResult } from "@/services/questionService";
 import { Check, X, Lock, ChevronRight } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Question = {
   id: string;
   level: string;
-  type: string;
+  category: string;
   question: string;
   options: string[];
-  answer: number;
+  answer_index: number;
   explanation: string;
   example_sentence?: string;
 };
@@ -72,9 +72,9 @@ export default function Practice() {
     }
 
     setLoading(true);
-    const { data, error } = await getQuestions(selectedLevel, selectedType, 10);
+    const { data, error } = await getRandomQuestions(selectedLevel, selectedType, 10);
     if (data) {
-      setQuestions(data);
+      setQuestions(data as any[]);
       setCurrentIndex(0);
       setSelectedAnswer(null);
       setShowResult(false);
@@ -90,14 +90,14 @@ export default function Practice() {
     setShowResult(true);
 
     const question = questions[currentIndex];
-    const isCorrect = answerIndex === question.answer;
+    const isCorrect = answerIndex === question.answer_index;
 
-    await saveQuestionResult({
-      userId: user.id,
-      questionId: question.id,
-      correct: isCorrect,
-      mode: "practice",
-    });
+    await saveQuestionResult(
+      user.id,
+      question.id,
+      isCorrect,
+      "practice"
+    );
   }
 
   function handleNext() {
@@ -114,7 +114,7 @@ export default function Practice() {
   }
 
   const question = questions[currentIndex];
-  const isCorrect = showResult && selectedAnswer === question?.answer;
+  const isCorrect = showResult && selectedAnswer === question?.answer_index;
   const canAccessLevel = userProfile?.is_premium || selectedLevel === "N5";
 
   return (
@@ -210,7 +210,7 @@ export default function Practice() {
                     <Badge className={`${LEVEL_COLORS[question.level as keyof typeof LEVEL_COLORS]} text-white`}>
                       {question.level} - Question {currentIndex + 1}/{questions.length}
                     </Badge>
-                    <Badge variant="outline">{question.type}</Badge>
+                    <Badge variant="outline">{question.category}</Badge>
                   </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -219,7 +219,7 @@ export default function Practice() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {question.options.map((option, index) => {
                       const isSelected = selectedAnswer === index;
-                      const isCorrectOption = index === question.answer;
+                      const isCorrectOption = index === question.answer_index;
                       const showCorrect = showResult && isCorrectOption;
                       const showWrong = showResult && isSelected && !isCorrect;
 
@@ -263,7 +263,7 @@ export default function Practice() {
                       </div>
                       <div className="text-sm">
                         <span className="font-medium">Correct Answer: </span>
-                        {question.options[question.answer]}
+                        {question.options[question.answer_index]}
                       </div>
                       <div className="text-sm">
                         <span className="font-medium">Explanation: </span>

@@ -7,24 +7,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
-import { getQuestions } from "@/services/questionService";
+import { getRandomQuestions } from "@/services/questionService";
 import { Check, X, Lock, Clock, ChevronRight, Trophy } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 type Question = {
   id: string;
   level: string;
-  type: string;
+  category: string;
   question: string;
   options: string[];
-  answer: number;
+  answer_index: number;
   explanation: string;
   example_sentence?: string;
 };
 
 type TestSection = {
   name: string;
-  type: string;
+  category: string;
   timeLimit: number;
   questionCount: number;
 };
@@ -39,24 +39,24 @@ const LEVEL_COLORS = {
 
 const TEST_SECTIONS: { [key: string]: TestSection[] } = {
   N5: [
-    { name: "Vocabulary", type: "vocabulary", timeLimit: 25 * 60, questionCount: 20 },
-    { name: "Grammar & Reading", type: "grammar", timeLimit: 50 * 60, questionCount: 30 },
+    { name: "Vocabulary", category: "vocabulary", timeLimit: 25 * 60, questionCount: 20 },
+    { name: "Grammar & Reading", category: "grammar", timeLimit: 50 * 60, questionCount: 30 },
   ],
   N4: [
-    { name: "Vocabulary", type: "vocabulary", timeLimit: 25 * 60, questionCount: 25 },
-    { name: "Grammar & Reading", type: "grammar", timeLimit: 50 * 60, questionCount: 35 },
+    { name: "Vocabulary", category: "vocabulary", timeLimit: 25 * 60, questionCount: 25 },
+    { name: "Grammar & Reading", category: "grammar", timeLimit: 50 * 60, questionCount: 35 },
   ],
   N3: [
-    { name: "Vocabulary", type: "vocabulary", timeLimit: 30 * 60, questionCount: 30 },
-    { name: "Grammar & Reading", type: "grammar", timeLimit: 70 * 60, questionCount: 40 },
+    { name: "Vocabulary", category: "vocabulary", timeLimit: 30 * 60, questionCount: 30 },
+    { name: "Grammar & Reading", category: "grammar", timeLimit: 70 * 60, questionCount: 40 },
   ],
   N2: [
-    { name: "Vocabulary", type: "vocabulary", timeLimit: 35 * 60, questionCount: 35 },
-    { name: "Grammar & Reading", type: "grammar", timeLimit: 105 * 60, questionCount: 45 },
+    { name: "Vocabulary", category: "vocabulary", timeLimit: 35 * 60, questionCount: 35 },
+    { name: "Grammar & Reading", category: "grammar", timeLimit: 105 * 60, questionCount: 45 },
   ],
   N1: [
-    { name: "Vocabulary", type: "vocabulary", timeLimit: 35 * 60, questionCount: 40 },
-    { name: "Grammar & Reading", type: "grammar", timeLimit: 110 * 60, questionCount: 50 },
+    { name: "Vocabulary", category: "vocabulary", timeLimit: 35 * 60, questionCount: 40 },
+    { name: "Grammar & Reading", category: "grammar", timeLimit: 110 * 60, questionCount: 50 },
   ],
 };
 
@@ -119,9 +119,9 @@ export default function MockTest() {
     const sections = TEST_SECTIONS[selectedLevel];
     const section = sections[0];
 
-    const { data } = await getQuestions(selectedLevel, section.type, section.questionCount);
+    const { data } = await getRandomQuestions(selectedLevel, section.category, section.questionCount);
     if (data) {
-      setQuestions(data);
+      setQuestions(data as any[]);
       setCurrentIndex(0);
       setAnswers({});
       setTimeRemaining(section.timeLimit);
@@ -138,9 +138,9 @@ export default function MockTest() {
     if (currentSection < sections.length - 1) {
       const nextSection = sections[currentSection + 1];
       setLoading(true);
-      const { data } = await getQuestions(selectedLevel, nextSection.type, nextSection.questionCount);
+      const { data } = await getRandomQuestions(selectedLevel, nextSection.category, nextSection.questionCount);
       if (data) {
-        setQuestions(data);
+        setQuestions(data as any[]);
         setCurrentIndex(0);
         setTimeRemaining(nextSection.timeLimit);
         setCurrentSection(currentSection + 1);
@@ -161,11 +161,11 @@ export default function MockTest() {
 
     allQuestions.forEach((q, index) => {
       const userAnswer = answers[index];
-      const isCorrect = userAnswer === q.answer;
+      const isCorrect = userAnswer === q.answer_index;
       
       if (isCorrect) correct++;
       
-      if (q.type === "vocabulary") {
+      if (q.category === "vocabulary") {
         vocabTotal++;
         if (isCorrect) vocabCorrect++;
       } else {
@@ -278,7 +278,7 @@ export default function MockTest() {
                   <h3 className="font-semibold text-lg">Question Review</h3>
                   {questions.map((q, index) => {
                     const userAnswer = answers[index];
-                    const isCorrect = userAnswer === q.answer;
+                    const isCorrect = userAnswer === q.answer_index;
                     return (
                       <Card key={index} className={isCorrect ? "border-green-600" : "border-destructive"}>
                         <CardContent className="pt-6">
@@ -292,7 +292,7 @@ export default function MockTest() {
                               <p className="font-medium mb-2">{q.question}</p>
                               <p className="text-sm text-muted-foreground">
                                 <span className="font-medium">Correct Answer: </span>
-                                {q.options[q.answer]}
+                                {q.options[q.answer_index]}
                               </p>
                               {userAnswer !== undefined && !isCorrect && (
                                 <p className="text-sm text-destructive">
