@@ -1,17 +1,20 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Moon, Sun, LogOut } from "lucide-react";
+import { Moon, Sun, LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export function TopBar() {
   const router = useRouter();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [user, setUser] = useState<any>(null);
   const [isPremium, setIsPremium] = useState(false);
+  const { currency, setCurrency } = useCurrency();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
@@ -51,7 +54,7 @@ export function TopBar() {
     <header className="border-b border-border bg-card">
       <div className="container">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/dashboard" className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded flex items-center justify-center">
               <span className="text-primary-foreground font-bold text-xl">J</span>
             </div>
@@ -64,6 +67,22 @@ export function TopBar() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
+              <SelectTrigger className="w-[100px] h-9">
+                <Globe className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="JPY">¥ JPY</SelectItem>
+                <SelectItem value="USD">$ USD</SelectItem>
+                <SelectItem value="BDT">৳ BDT</SelectItem>
+                <SelectItem value="NPR">₨ NPR</SelectItem>
+                <SelectItem value="INR">₹ INR</SelectItem>
+                <SelectItem value="VND">₫ VND</SelectItem>
+                <SelectItem value="LKR">රු LKR</SelectItem>
+              </SelectContent>
+            </Select>
+
             <Button
               variant="ghost"
               size="icon"
@@ -83,7 +102,7 @@ export function TopBar() {
 
             {user && (
               <>
-                <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/account")}>
+                <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/settings")}>
                   <AvatarFallback className="bg-primary text-primary-foreground">
                     {user.email?.[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
