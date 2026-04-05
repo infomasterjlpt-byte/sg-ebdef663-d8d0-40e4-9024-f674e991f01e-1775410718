@@ -11,7 +11,7 @@ import { Flame, Target, TrendingUp, BookOpen, Clock, Trophy, AlertCircle, Chevro
 
 type RecentResult = {
   id: string;
-  created_at: string;
+  answered_at: string;
   correct: boolean;
   mode: string;
   questions: {
@@ -45,6 +45,7 @@ export default function Home() {
   const [categoryStats, setCategoryStats] = useState<CategoryStats | null>(null);
   const [reviewCount, setReviewCount] = useState(0);
   const [totalStudyTime, setTotalStudyTime] = useState(0);
+  const [overallProgress, setOverallProgress] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export default function Home() {
   async function loadDashboardData(userId: string, targetLevel: string) {
     const today = new Date().toISOString().split("T")[0];
     
-    const [progressRes, resultsRes, reviewRes, testsRes] = await Promise.all([
+    const [progressRes, resultsRes, reviewRes, testsRes, masteredRes] = await Promise.all([
       supabase
         .from("daily_progress")
         .select("*")
@@ -92,7 +93,7 @@ export default function Home() {
         .from("results")
         .select("*, questions(*)")
         .eq("user_id", userId)
-        .order("created_at", { ascending: false })
+        .order("answered_at", { ascending: false })
         .limit(10),
       
       supabase
@@ -104,15 +105,25 @@ export default function Home() {
       supabase
         .from("mock_tests")
         .select("time_taken")
+        .eq("user_id", userId),
+
+      supabase
+        .from("review_items")
+        .select("id")
         .eq("user_id", userId)
+        .eq("status", "mastered")
     ]);
 
     setTodayProgress(progressRes.data);
-    setRecentResults((resultsRes.data || []) as RecentResult[]);
+    setRecentResults((resultsRes.data || []) as unknown as RecentResult[]);
     setReviewCount(reviewRes.data?.length || 0);
 
     const totalTime = testsRes.data?.reduce((sum, test) => sum + (test.time_taken || 0), 0) || 0;
     setTotalStudyTime(totalTime);
+
+    const totalMastered = masteredRes.data?.length || 0;
+    const levelTotal = LEVEL_TOTALS[targetLevel] || 1000;
+    setOverallProgress(Math.min(Math.round((totalMastered / levelTotal) * 100), 100));
 
     await calculateCategoryStats(userId, targetLevel);
     
@@ -167,21 +178,6 @@ export default function Home() {
     };
   }
 
-  function getOverallProgress(): number {
-    if (!categoryStats || !userProfile?.target_level) return 0;
-    
-    const { data: masteredItems } = await supabase
-      .from("review_items")
-      .select("*")
-      .eq("user_id", user?.id)
-      .eq("status", "mastered");
-    
-    const totalMastered = masteredItems?.length || 0;
-    const levelTotal = LEVEL_TOTALS[userProfile.target_level] || 1000;
-    
-    return Math.min(Math.round((totalMastered / levelTotal) * 100), 100);
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -200,7 +196,6 @@ export default function Home() {
     : 0;
 
   const weakestTopic = getWeakestCategory();
-  const overallProgress = 0;
 
   return (
     <>
