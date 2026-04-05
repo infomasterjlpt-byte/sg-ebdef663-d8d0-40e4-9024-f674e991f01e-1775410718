@@ -77,11 +77,14 @@ export default function Review() {
       .limit(20);
 
     if (data) {
-      const formatted = data.map(item => ({
-        ...item.questions,
-        status: item.status,
-        correct_streak: item.correct_streak,
-      })) as ReviewQuestion[];
+      const formatted = data.map(item => {
+        const q = Array.isArray(item.questions) ? item.questions[0] : item.questions;
+        return {
+          ...(q as any),
+          status: item.status,
+          correct_streak: item.correct_streak,
+        };
+      }) as ReviewQuestion[];
       setQuestions(formatted);
     }
     

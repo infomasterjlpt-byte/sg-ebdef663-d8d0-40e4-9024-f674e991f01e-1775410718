@@ -29,6 +29,19 @@ export async function getRandomQuestions(level: string, category: string, count:
   return { data: shuffled.slice(0, count), error: null };
 }
 
+export async function getQuestions(level: string, count: number) {
+  const { data, error } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("level", level)
+    .limit(count);
+  return { data: data || [], error };
+}
+
+export async function saveQuestionResult(userId: string, questionId: string, correct: boolean, mode: string) {
+  return submitAnswer(userId, questionId, correct, mode);
+}
+
 export async function submitAnswer(
   userId: string,
   questionId: string,

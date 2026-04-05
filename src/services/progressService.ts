@@ -92,3 +92,7 @@ export async function getUserStats(userId: string, level: string) {
     learning,
   };
 }
+
+export async function getProgressStats(userId: string, level: string) {
+  return getUserStats(userId, level);
+}
