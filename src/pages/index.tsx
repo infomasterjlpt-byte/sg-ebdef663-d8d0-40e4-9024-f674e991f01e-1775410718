@@ -1,52 +1,124 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { SEO } from "@/components/SEO";
-import { AppLayout } from "@/components/Layout/AppLayout";
-import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Flame, Target, TrendingUp, BookOpen, Clock, Trophy, AlertCircle, ChevronRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { 
+  BookOpen, 
+  Brain, 
+  Clock, 
+  TrendingUp, 
+  Check, 
+  Star,
+  Lock,
+  Zap,
+  Target,
+  Award
+} from "lucide-react";
 
-type RecentResult = {
-  id: string;
-  answered_at: string;
-  correct: boolean;
-  mode: string;
-  questions: {
-    question: string;
-    category: string;
-    level: string;
-  };
-};
+const FEATURES = [
+  {
+    icon: BookOpen,
+    title: "Practice Mode",
+    description: "Choose your level, get instant explanations for every answer. Build mastery one question at a time.",
+  },
+  {
+    icon: Brain,
+    title: "Smart Review",
+    description: "App remembers your wrong answers and repeats them until mastered. Never forget what you've learned.",
+  },
+  {
+    icon: Clock,
+    title: "Mock Tests",
+    description: "Full timed JLPT-style exams with detailed results. Experience the real test before exam day.",
+  },
+];
 
-type CategoryStats = {
-  vocabulary: { correct: number; total: number; accuracy: number };
-  grammar: { correct: number; total: number; accuracy: number };
-  reading: { correct: number; total: number; accuracy: number };
-  kanji: { correct: number; total: number; accuracy: number };
-};
+const LEVELS = [
+  {
+    level: "N5",
+    difficulty: "Beginner",
+    kanji: 100,
+    vocab: 800,
+    grammar: 285,
+    reading: 212,
+    total: 997,
+    isFree: true,
+    color: "bg-level-n5",
+  },
+  {
+    level: "N4",
+    difficulty: "Elementary",
+    kanji: 300,
+    vocab: 1500,
+    grammar: 300,
+    reading: 250,
+    total: 2350,
+    isFree: false,
+    color: "bg-level-n4",
+  },
+  {
+    level: "N3",
+    difficulty: "Intermediate",
+    kanji: 650,
+    vocab: 3700,
+    grammar: 350,
+    reading: 300,
+    total: 5000,
+    isFree: false,
+    color: "bg-level-n3",
+  },
+  {
+    level: "N2",
+    difficulty: "Upper Intermediate",
+    kanji: 1000,
+    vocab: 6000,
+    grammar: 400,
+    reading: 350,
+    total: 7750,
+    isFree: false,
+    color: "bg-level-n2",
+  },
+  {
+    level: "N1",
+    difficulty: "Advanced",
+    kanji: 2000,
+    vocab: 10000,
+    grammar: 450,
+    reading: 400,
+    total: 12850,
+    isFree: false,
+    color: "bg-level-n1",
+  },
+];
 
-const LEVEL_TOTALS: { [key: string]: number } = {
-  N5: 997,
-  N4: 2350,
-  N3: 5000,
-  N2: 7750,
-  N1: 12850,
-};
+const TESTIMONIALS = [
+  {
+    name: "Sarah Chen",
+    level: "N3",
+    text: "The smart review system helped me remember kanji I kept forgetting. Passed N3 on my first try!",
+    rating: 5,
+  },
+  {
+    name: "Miguel Rodriguez",
+    level: "N5",
+    text: "Perfect for beginners. The explanations are clear and the daily goal keeps me motivated.",
+    rating: 5,
+  },
+  {
+    name: "Yuki Tanaka",
+    level: "N2",
+    text: "Mock tests feel exactly like the real exam. The timer pressure helped me prepare mentally.",
+    rating: 5,
+  },
+];
 
-export default function Home() {
+export default function Landing() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [todayProgress, setTodayProgress] = useState<any>(null);
-  const [recentResults, setRecentResults] = useState<RecentResult[]>([]);
-  const [categoryStats, setCategoryStats] = useState<CategoryStats | null>(null);
-  const [reviewCount, setReviewCount] = useState(0);
-  const [totalStudyTime, setTotalStudyTime] = useState(0);
-  const [overallProgress, setOverallProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkUser();
@@ -54,420 +126,315 @@ export default function Home() {
 
   async function checkUser() {
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      router.push("/auth/login");
-      return;
+    if (user) {
+      setUser(user);
+      router.push("/dashboard");
     }
-
-    setUser(user);
-
-    const { data: profile } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    setUserProfile(profile);
-
-    if (!profile?.target_level) {
-      router.push("/level-selection");
-      return;
-    }
-
-    await loadDashboardData(user.id, profile.target_level);
   }
-
-  async function loadDashboardData(userId: string, targetLevel: string) {
-    const today = new Date().toISOString().split("T")[0];
-    
-    const [progressRes, resultsRes, reviewRes, testsRes, masteredRes] = await Promise.all([
-      supabase
-        .from("daily_progress")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("date", today)
-        .single(),
-      
-      supabase
-        .from("results")
-        .select("*, questions(*)")
-        .eq("user_id", userId)
-        .order("answered_at", { ascending: false })
-        .limit(10),
-      
-      supabase
-        .from("review_items")
-        .select("*")
-        .eq("user_id", userId)
-        .neq("status", "mastered"),
-      
-      supabase
-        .from("mock_tests")
-        .select("time_taken")
-        .eq("user_id", userId),
-
-      supabase
-        .from("review_items")
-        .select("id")
-        .eq("user_id", userId)
-        .eq("status", "mastered")
-    ]);
-
-    setTodayProgress(progressRes.data);
-    setRecentResults((resultsRes.data || []) as unknown as RecentResult[]);
-    setReviewCount(reviewRes.data?.length || 0);
-
-    const totalTime = testsRes.data?.reduce((sum, test) => sum + (test.time_taken || 0), 0) || 0;
-    setTotalStudyTime(totalTime);
-
-    const totalMastered = masteredRes.data?.length || 0;
-    const levelTotal = LEVEL_TOTALS[targetLevel] || 1000;
-    setOverallProgress(Math.min(Math.round((totalMastered / levelTotal) * 100), 100));
-
-    await calculateCategoryStats(userId, targetLevel);
-    
-    setLoading(false);
-  }
-
-  async function calculateCategoryStats(userId: string, level: string) {
-    const { data: results } = await supabase
-      .from("results")
-      .select("*, questions(*)")
-      .eq("user_id", userId);
-
-    const levelResults = results?.filter((r: any) => r.questions?.level === level) || [];
-    
-    const stats: CategoryStats = {
-      vocabulary: { correct: 0, total: 0, accuracy: 0 },
-      grammar: { correct: 0, total: 0, accuracy: 0 },
-      reading: { correct: 0, total: 0, accuracy: 0 },
-      kanji: { correct: 0, total: 0, accuracy: 0 },
-    };
-
-    levelResults.forEach((r: any) => {
-      const category = r.questions?.category;
-      if (category && stats[category as keyof CategoryStats]) {
-        stats[category as keyof CategoryStats].total++;
-        if (r.correct) {
-          stats[category as keyof CategoryStats].correct++;
-        }
-      }
-    });
-
-    Object.keys(stats).forEach((key) => {
-      const cat = stats[key as keyof CategoryStats];
-      cat.accuracy = cat.total > 0 ? Math.round((cat.correct / cat.total) * 100) : 0;
-    });
-
-    setCategoryStats(stats);
-  }
-
-  function getWeakestCategory(): { name: string; accuracy: number } | null {
-    if (!categoryStats) return null;
-    
-    const categories = Object.entries(categoryStats)
-      .filter(([_, stats]) => stats.total > 0)
-      .sort((a, b) => a[1].accuracy - b[1].accuracy);
-    
-    if (categories.length === 0) return null;
-    
-    return {
-      name: categories[0][0],
-      accuracy: categories[0][1].accuracy,
-    };
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-primary rounded mx-auto mb-4 flex items-center justify-center">
-            <span className="text-primary-foreground font-bold text-3xl">J</span>
-          </div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const progressPercentage = todayProgress
-    ? Math.min((todayProgress.questions_answered / (userProfile?.daily_goal || 20)) * 100, 100)
-    : 0;
-
-  const weakestTopic = getWeakestCategory();
 
   return (
     <>
-      <SEO title="Dashboard - JLPT Master" description="Your personalized JLPT study dashboard" />
-      <AppLayout>
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
+      <SEO 
+        title="JLPT Master - AI-Powered Japanese Exam Prep" 
+        description="Master the JLPT with AI-powered practice for N5 to N1. Track your progress, fix your weak points, and pass your exam."
+      />
+      
+      {/* Header */}
+      <header className="border-b border-border bg-card sticky top-0 z-50">
+        <div className="container flex items-center justify-between h-16">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-accent rounded flex items-center justify-center">
+              <span className="text-accent-foreground font-bold text-2xl">J</span>
+            </div>
             <div>
-              <h1 className="text-3xl font-bold">Welcome back!</h1>
-              <p className="text-muted-foreground">
-                Target Level: <span className="text-primary font-semibold">{userProfile?.target_level}</span>
-              </p>
+              <div className="font-bold text-lg leading-none">JLPT Master</div>
+              <div className="text-xs text-muted-foreground">by Toki English</div>
+            </div>
+          </Link>
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" asChild>
+              <Link href="/auth/login">Login</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/auth/signup">Sign Up</Link>
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Hero Section */}
+      <section className="py-20 md:py-32 bg-gradient-to-b from-background to-surface">
+        <div className="container">
+          <div className="max-w-4xl mx-auto text-center space-y-6">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
+              Master the JLPT.<br />One level at a time.
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              AI-powered practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+              <Button size="lg" asChild>
+                <Link href="/auth/signup">Start Free — N5</Link>
+              </Button>
+              <Button size="lg" variant="outline" asChild>
+                <Link href="#pricing">See Pricing</Link>
+              </Button>
+            </div>
+            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground pt-6">
+              <span className="font-semibold text-foreground">997 N5 questions</span>
+              <span>·</span>
+              <span>Kanji</span>
+              <span>·</span>
+              <span>Grammar</span>
+              <span>·</span>
+              <span>Vocabulary</span>
+              <span>·</span>
+              <span>Reading</span>
             </div>
           </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Flame className="h-4 w-4 text-primary" />
-                  Study Streak
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{userProfile?.streak || 0}</div>
-                <p className="text-xs text-muted-foreground mt-1">consecutive days</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Target className="h-4 w-4 text-primary" />
-                  Daily Goal
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">
-                  {todayProgress?.questions_answered || 0}/{userProfile?.daily_goal || 20}
-                </div>
-                <Progress value={progressPercentage} className="mt-2 h-2" />
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="h-4 w-4 text-primary" />
-                  Overall Progress
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{overallProgress}%</div>
-                <p className="text-xs text-muted-foreground mt-1">of {userProfile?.target_level} mastered</p>
-              </CardContent>
-            </Card>
+      {/* Features Section */}
+      <section className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything you need to pass</h2>
+            <p className="text-muted-foreground text-lg">Comprehensive tools designed for serious learners</p>
           </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {FEATURES.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card key={feature.title} className="text-center">
+                  <CardHeader>
+                    <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Icon className="h-6 w-6 text-accent" />
+                    </div>
+                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      </section>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Levels Section */}
+      <section className="py-20 bg-surface">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose your level</h2>
+            <p className="text-muted-foreground text-lg">From beginner to advanced — we have you covered</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
+            {LEVELS.map((level) => (
+              <Card key={level.level} className="relative overflow-hidden">
+                {!level.isFree && (
+                  <div className="absolute top-3 right-3">
+                    <Lock className="h-4 w-4 text-muted-foreground opacity-35" />
+                  </div>
+                )}
+                <CardHeader>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className={`${level.color} text-white`}>{level.level}</Badge>
+                    {level.isFree ? (
+                      <Badge variant="outline" className="border-green-600 text-green-600">Free</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-accent text-accent">Premium</Badge>
+                    )}
+                  </div>
+                  <CardTitle className="text-lg">{level.difficulty}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Kanji:</span>
+                    <span className="font-semibold">{level.kanji.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Vocabulary:</span>
+                    <span className="font-semibold">{level.vocab.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Grammar:</span>
+                    <span className="font-semibold">{level.grammar}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Reading:</span>
+                    <span className="font-semibold">{level.reading}</span>
+                  </div>
+                  <div className="pt-2 border-t border-border">
+                    <div className="flex justify-between font-bold">
+                      <span>Total:</span>
+                      <span>{level.total.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-20 bg-background">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
+            <p className="text-muted-foreground text-lg">Start free with N5, upgrade anytime</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Free Plan */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BookOpen className="h-5 w-5 text-primary" />
-                  Recommended Practice
-                </CardTitle>
+                <CardTitle className="text-2xl">Free</CardTitle>
+                <CardDescription className="text-3xl font-bold text-foreground pt-2">
+                  $0<span className="text-base font-normal text-muted-foreground">/month</span>
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {reviewCount > 0 && (
-                  <div className="border border-border rounded-lg p-4 bg-surface">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <AlertCircle className="h-4 w-4 text-primary" />
-                          <h3 className="font-semibold">Review Items</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          You have {reviewCount} question{reviewCount !== 1 ? 's' : ''} to review
-                        </p>
-                        <Button onClick={() => router.push("/review")} className="w-full">
-                          Start Review Session
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {weakestTopic && (
-                  <div className="border border-border rounded-lg p-4 bg-surface">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Target className="h-4 w-4 text-primary" />
-                          <h3 className="font-semibold">Focus Area</h3>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">
-                          <span className="capitalize font-medium">{weakestTopic.name}</span> needs attention
-                        </p>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Current accuracy: {weakestTopic.accuracy}%
-                        </p>
-                        <Button 
-                          variant="outline"
-                          onClick={() => router.push(`/practice?category=${weakestTopic.name}`)} 
-                          className="w-full"
-                        >
-                          Practice {weakestTopic.name}
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="border border-border rounded-lg p-4 bg-surface">
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <h3 className="font-semibold">Quick Practice</h3>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        10 questions to maintain your streak
-                      </p>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => router.push("/practice?category=vocabulary")}
-                        >
-                          Vocabulary
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => router.push("/practice?category=grammar")}
-                        >
-                          Grammar
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>N5 level only</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>20 questions per day</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Basic progress tracking</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Daily streak counter</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Smart review system</span>
+                  </li>
+                </ul>
+                <Button variant="outline" className="w-full" asChild>
+                  <Link href="/auth/signup">Start Free</Link>
+                </Button>
               </CardContent>
             </Card>
 
-            <Card>
+            {/* Premium Plan */}
+            <Card className="border-2 border-accent relative">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <Badge className="bg-accent text-accent-foreground px-4 py-1">Most Popular</Badge>
+              </div>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {recentResults.length === 0 ? (
-                  <p className="text-sm text-muted-foreground text-center py-8">
-                    No recent activity. Start practicing to see your progress!
-                  </p>
-                ) : (
-                  <div className="space-y-2">
-                    {recentResults.map((result) => (
-                      <div
-                        key={result.id}
-                        className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface hover:bg-surface/80 transition-colors"
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-2 h-2 rounded-full ${result.correct ? 'bg-green-600' : 'bg-destructive'}`} />
-                          <div>
-                            <p className="text-sm font-medium line-clamp-1">
-                              {result.questions?.question || 'Question'}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {result.questions?.category} • {result.mode}
-                            </p>
-                          </div>
-                        </div>
-                        <Badge variant={result.correct ? "default" : "destructive"} className="text-xs">
-                          {result.correct ? 'Correct' : 'Wrong'}
-                        </Badge>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Category Performance</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {!categoryStats ? (
-                <p className="text-sm text-muted-foreground text-center py-8">
-                  Start practicing to see your performance by category
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {Object.entries(categoryStats).map(([category, stats]) => (
-                    <div key={category} className="border border-border rounded-lg p-4 bg-surface">
-                      <div className="flex items-center justify-between mb-3">
-                        <h3 className="font-semibold capitalize">{category}</h3>
-                        <Badge variant="outline">{stats.accuracy}%</Badge>
-                      </div>
-                      <Progress value={stats.accuracy} className="h-2 mb-2" />
-                      <p className="text-xs text-muted-foreground">
-                        {stats.correct} / {stats.total} correct
-                      </p>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => router.push(`/practice?category=${category}`)}
-                        className="w-full mt-3 text-primary hover:text-primary"
-                      >
-                        Practice <ChevronRight className="h-4 w-4 ml-1" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5 text-primary" />
-                  Study Stats
-                </CardTitle>
+                <CardTitle className="text-2xl">Premium</CardTitle>
+                <CardDescription className="text-3xl font-bold text-foreground pt-2">
+                  $5<span className="text-base font-normal text-muted-foreground">/month</span>
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Total Study Time</span>
-                  <span className="font-semibold">
-                    {Math.floor(totalStudyTime / 60)} min
-                  </span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Questions Answered</span>
-                  <span className="font-semibold">{recentResults.length}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Items to Review</span>
-                  <span className="font-semibold">{reviewCount}</span>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="h-5 w-5 text-primary" />
-                  Next Steps
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <Button onClick={() => router.push("/practice")} className="w-full justify-between">
-                  Start Practice Session
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button onClick={() => router.push("/mock-test")} variant="outline" className="w-full justify-between">
-                  Take Mock Test
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button onClick={() => router.push("/progress")} variant="outline" className="w-full justify-between">
-                  View Detailed Progress
-                  <ChevronRight className="h-4 w-4" />
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span className="font-semibold">All levels: N5, N4, N3, N2, N1</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span className="font-semibold">Unlimited questions</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Full mock exams (all levels)</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Advanced analytics</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Weak word lists</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Study time graphs</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
+                    <span>Predicted score</span>
+                  </li>
+                </ul>
+                <Button className="w-full" asChild>
+                  <Link href="/auth/signup">Go Premium</Link>
                 </Button>
               </CardContent>
             </Card>
           </div>
         </div>
-      </AppLayout>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-20 bg-surface">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">Loved by students worldwide</h2>
+            <p className="text-muted-foreground text-lg">See what learners are saying</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {TESTIMONIALS.map((testimonial) => (
+              <Card key={testimonial.name}>
+                <CardHeader>
+                  <div className="flex items-center gap-1 mb-2">
+                    {Array.from({ length: testimonial.rating }).map((_, i) => (
+                      <Star key={i} className="h-4 w-4 fill-accent text-accent" />
+                    ))}
+                  </div>
+                  <CardDescription className="text-foreground italic">
+                    "{testimonial.text}"
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">{testimonial.name}</p>
+                      <p className="text-sm text-muted-foreground">{testimonial.level} Student</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-border bg-card py-12">
+        <div className="container">
+          <div className="text-center space-y-4">
+            <p className="text-sm">
+              Powered by <span className="text-accent font-bold">Toki English</span>
+            </p>
+            <p className="text-xs text-muted-foreground">
+              © {new Date().getFullYear()} Toki English. All rights reserved.
+            </p>
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
+              This app is not affiliated with or endorsed by the Japan Foundation.
+            </p>
+            <div className="flex items-center justify-center gap-4 pt-4">
+              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+                Privacy Policy
+              </Link>
+              <span className="text-muted-foreground">·</span>
+              <Link href="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
+                Terms of Service
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
     </>
   );
 }
