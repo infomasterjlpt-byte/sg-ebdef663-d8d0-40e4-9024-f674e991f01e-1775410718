@@ -5,7 +5,9 @@ import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useCurrency } from "@/contexts/CurrencyContext";
 import { 
   BookOpen, 
   Brain, 
@@ -16,7 +18,9 @@ import {
   Lock,
   Zap,
   Target,
-  Award
+  Award,
+  Globe,
+  Crown
 } from "lucide-react";
 
 const FEATURES = [
@@ -46,7 +50,7 @@ const LEVELS = [
     grammar: 285,
     reading: 212,
     total: 997,
-    isFree: true,
+    isFree: false,
     color: "bg-level-n5",
   },
   {
@@ -119,6 +123,7 @@ const TESTIMONIALS = [
 export default function Landing() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const { currency, setCurrency, convertPrice, getCurrencySymbol } = useCurrency();
 
   useEffect(() => {
     checkUser();
@@ -131,6 +136,10 @@ export default function Landing() {
       router.push("/dashboard");
     }
   }
+
+  const monthlyPrice = 499;
+  const sixMonthPrice = 2499;
+  const symbol = getCurrencySymbol();
 
   return (
     <>
@@ -152,6 +161,21 @@ export default function Landing() {
             </div>
           </Link>
           <div className="flex items-center gap-3">
+            <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
+              <SelectTrigger className="w-[100px] h-9">
+                <Globe className="h-4 w-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="JPY">¥ JPY</SelectItem>
+                <SelectItem value="USD">$ USD</SelectItem>
+                <SelectItem value="BDT">৳ BDT</SelectItem>
+                <SelectItem value="NPR">₨ NPR</SelectItem>
+                <SelectItem value="INR">₹ INR</SelectItem>
+                <SelectItem value="VND">₫ VND</SelectItem>
+                <SelectItem value="LKR">රු LKR</SelectItem>
+              </SelectContent>
+            </Select>
             <Button variant="ghost" asChild>
               <Link href="/auth/login">Login</Link>
             </Button>
@@ -233,19 +257,13 @@ export default function Landing() {
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
             {LEVELS.map((level) => (
               <Card key={level.level} className="relative overflow-hidden">
-                {!level.isFree && (
-                  <div className="absolute top-3 right-3">
-                    <Lock className="h-4 w-4 text-muted-foreground opacity-35" />
-                  </div>
-                )}
+                <div className="absolute top-3 right-3">
+                  <Lock className="h-4 w-4 text-muted-foreground opacity-35" />
+                </div>
                 <CardHeader>
                   <div className="flex items-center justify-between mb-2">
                     <Badge className={`${level.color} text-white`}>{level.level}</Badge>
-                    {level.isFree ? (
-                      <Badge variant="outline" className="border-green-600 text-green-600">Free</Badge>
-                    ) : (
-                      <Badge variant="outline" className="border-accent text-accent">Premium</Badge>
-                    )}
+                    <Badge variant="outline" className="border-accent text-accent">Premium</Badge>
                   </div>
                   <CardTitle className="text-lg">{level.difficulty}</CardTitle>
                 </CardHeader>
@@ -284,26 +302,26 @@ export default function Landing() {
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
-            <p className="text-muted-foreground text-lg">Start free with N5, upgrade anytime</p>
+            <p className="text-muted-foreground text-lg">Start free with 3 questions/day, upgrade anytime</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
             {/* Free Plan */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-2xl">Free</CardTitle>
                 <CardDescription className="text-3xl font-bold text-foreground pt-2">
-                  $0<span className="text-base font-normal text-muted-foreground">/month</span>
+                  {symbol}0<span className="text-base font-normal text-muted-foreground">/month</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <ul className="space-y-3">
                   <li className="flex items-center gap-2">
                     <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>N5 level only</span>
+                    <span>3 questions per day</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>20 questions per day</span>
+                    <span>N5 level only (limited)</span>
                   </li>
                   <li className="flex items-center gap-2">
                     <Check className="h-5 w-5 text-accent flex-shrink-0" />
@@ -324,15 +342,18 @@ export default function Landing() {
               </CardContent>
             </Card>
 
-            {/* Premium Plan */}
-            <Card className="border-2 border-accent relative">
+            {/* Premium Monthly */}
+            <Card className="border-2 border-accent relative overflow-hidden">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2">
                 <Badge className="bg-accent text-accent-foreground px-4 py-1">Most Popular</Badge>
               </div>
               <CardHeader>
-                <CardTitle className="text-2xl">Premium</CardTitle>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Crown className="h-6 w-6 text-accent" />
+                  Premium
+                </CardTitle>
                 <CardDescription className="text-3xl font-bold text-foreground pt-2">
-                  $5<span className="text-base font-normal text-muted-foreground">/month</span>
+                  {symbol}{convertPrice(monthlyPrice)}<span className="text-base font-normal text-muted-foreground">/month</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -368,6 +389,63 @@ export default function Landing() {
                 </ul>
                 <Button className="w-full" asChild>
                   <Link href="/auth/signup">Go Premium</Link>
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* Premium Plus 6 Months */}
+            <Card className="border-2 border-primary relative overflow-hidden">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <Badge className="bg-primary text-white px-4 py-1 flex items-center gap-1">
+                  <Zap className="h-4 w-4" />
+                  Best Value
+                </Badge>
+              </div>
+              <CardHeader>
+                <CardTitle className="text-2xl flex items-center gap-2">
+                  <Zap className="h-6 w-6 text-primary" />
+                  Premium Plus
+                </CardTitle>
+                <CardDescription className="text-3xl font-bold text-foreground pt-2">
+                  {symbol}{convertPrice(sixMonthPrice)}<span className="text-base font-normal text-muted-foreground">/6 months</span>
+                </CardDescription>
+                <p className="text-sm text-muted-foreground">
+                  Save {symbol}{convertPrice(monthlyPrice * 6 - sixMonthPrice)} vs monthly
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <ul className="space-y-3">
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span className="font-semibold">Everything in Premium</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span className="font-semibold">6 months access</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Weak kanji/vocab lists</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Predicted JLPT score</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Personalized study plan</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Priority email support</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
+                    <span>Early access to features</span>
+                  </li>
+                </ul>
+                <Button className="w-full bg-primary hover:bg-primary/90" asChild>
+                  <Link href="/auth/signup">Get Premium Plus</Link>
                 </Button>
               </CardContent>
             </Card>
