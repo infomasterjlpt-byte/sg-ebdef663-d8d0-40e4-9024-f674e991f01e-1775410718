@@ -63,12 +63,12 @@ export default function Signup() {
 
   return (
     <>
-      <SEO title="Sign Up - JLPT Master" description="Create your account" />
+      <SEO title="Sign Up - Master JLPT" description="Create your account" />
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-primary rounded mx-auto mb-4 flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-3xl">J</span>
+            <div className="w-16 h-16 bg-[#cc1f1f] rounded-[10px] mx-auto mb-4 flex items-center justify-center">
+              <span className="text-white font-bold text-3xl">M</span>
             </div>
             <CardTitle className="text-2xl">Get started</CardTitle>
             <CardDescription>Create your account to master JLPT</CardDescription>

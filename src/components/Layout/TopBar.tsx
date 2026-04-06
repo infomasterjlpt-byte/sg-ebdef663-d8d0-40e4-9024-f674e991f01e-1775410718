@@ -54,15 +54,13 @@ export function TopBar() {
     <header className="border-b border-border bg-card">
       <div className="container">
         <div className="flex h-16 items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary rounded flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-xl">J</span>
+          <Link href="/dashboard" className="flex items-center gap-2.5">
+            <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
+              <span className="text-white font-bold text-xl">M</span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-lg leading-none">JLPT Master</span>
-              <span className="text-xs text-muted-foreground leading-none mt-0.5">
-                by <span className="text-primary font-semibold">Toki English</span>
-              </span>
+            <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
+              <span className="font-extrabold text-[#111111]">Master</span>
+              <span className="font-normal text-[#cc1f1f]">JLPT</span>
             </div>
           </Link>
 

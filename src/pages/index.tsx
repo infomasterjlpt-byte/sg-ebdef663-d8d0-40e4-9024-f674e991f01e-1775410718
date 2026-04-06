@@ -144,20 +144,20 @@ export default function Landing() {
   return (
     <>
       <SEO 
-        title="JLPT Master - AI-Powered Japanese Exam Prep" 
-        description="Master the JLPT with AI-powered practice for N5 to N1. Track your progress, fix your weak points, and pass your exam."
+        title="Master JLPT — Japanese Language Study" 
+        description="Master the JLPT with practice for N5 to N1. Track your progress, fix your weak points, and pass your exam."
       />
       
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-accent rounded flex items-center justify-center">
-              <span className="text-accent-foreground font-bold text-2xl">J</span>
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
+              <span className="text-white font-bold text-xl">M</span>
             </div>
-            <div>
-              <div className="font-bold text-lg leading-none">JLPT Master</div>
-              <div className="text-xs text-muted-foreground">by Toki English</div>
+            <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
+              <span className="font-extrabold text-[#111111]">Master</span>
+              <span className="font-normal text-[#cc1f1f]">JLPT</span>
             </div>
           </Link>
           <div className="flex items-center gap-3">
@@ -194,7 +194,7 @@ export default function Landing() {
               Master the JLPT.<br />One level at a time.
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              AI-powered practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.
+              Practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Button size="lg" asChild>
@@ -491,11 +491,11 @@ export default function Landing() {
       <footer className="border-t border-border bg-card py-12">
         <div className="container">
           <div className="text-center space-y-4">
-            <p className="text-sm">
-              Powered by <span className="text-accent font-bold">Toki English</span>
+            <p className="text-sm font-bold text-[#cc1f1f]">
+              Powered by Toki English
             </p>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Toki English. All rights reserved.
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              © 2025 Toki English. All rights reserved.
             </p>
             <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
               JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 

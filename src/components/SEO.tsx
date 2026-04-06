@@ -8,8 +8,8 @@ type SEOProps = {
   url?: string;
 };
 
-const DEFAULT_TITLE = "JLPT Master - AI-Powered Japanese Exam Prep by Toki English";
-const DEFAULT_DESCRIPTION = "Master the JLPT with AI-powered practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.";
+const DEFAULT_TITLE = "Master JLPT — Japanese Language Study";
+const DEFAULT_DESCRIPTION = "Master the JLPT with practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.";
 const DEFAULT_IMAGE = "/og-image.png";
 
 export function SEOElements({
