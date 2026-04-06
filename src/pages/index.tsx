@@ -198,22 +198,11 @@ export default function Landing() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
               <Button size="lg" asChild>
-                <Link href="/auth/signup">Start Free — N5</Link>
+                <Link href="/levels">Start Now</Link>
               </Button>
               <Button size="lg" variant="outline" asChild>
                 <Link href="#pricing">See Pricing</Link>
               </Button>
-            </div>
-            <div className="flex items-center justify-center gap-3 text-sm text-muted-foreground pt-6">
-              <span className="font-semibold text-foreground">997 N5 questions</span>
-              <span>·</span>
-              <span>Kanji</span>
-              <span>·</span>
-              <span>Grammar</span>
-              <span>·</span>
-              <span>Vocabulary</span>
-              <span>·</span>
-              <span>Reading</span>
             </div>
           </div>
         </div>
