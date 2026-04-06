@@ -91,7 +91,7 @@ export default function Pricing() {
 
   return (
     <>
-      <SEO title="Pricing - JLPT Master" description="Choose your JLPT Master plan" />
+      <SEO title="Pricing - Master JLPT" description="Choose your Master JLPT plan" />
       <AppLayout>
         <div className="max-w-6xl mx-auto space-y-8">
           <div className="text-center">

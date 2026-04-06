@@ -6,19 +6,19 @@ import { ArrowLeft } from "lucide-react";
 export default function Privacy() {
   return (
     <>
-      <SEO title="Privacy Policy - JLPT Master" description="Privacy policy for JLPT Master by Toki English" />
+      <SEO title="Privacy Policy - Master JLPT" description="Privacy policy for Master JLPT by Toki English" />
       
       <div className="min-h-screen bg-background">
         {/* Header */}
         <header className="border-b border-border bg-card">
           <div className="container flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-accent rounded flex items-center justify-center">
-                <span className="text-accent-foreground font-bold text-2xl">J</span>
+            <Link href="/" className="flex items-center gap-2.5">
+              <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
+                <span className="text-white font-bold text-xl">M</span>
               </div>
-              <div>
-                <div className="font-bold text-lg leading-none">JLPT Master</div>
-                <div className="text-xs text-muted-foreground">by Toki English</div>
+              <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
+                <span className="font-extrabold text-[#111111]">Master</span>
+                <span className="font-normal text-[#cc1f1f]">JLPT</span>
               </div>
             </Link>
             <Button variant="ghost" asChild>
@@ -38,7 +38,7 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground">
-                Toki English ("we," "our," or "us") operates JLPT Master. This Privacy Policy explains how we collect, 
+                Toki English ("we," "our," or "us") operates Master JLPT. This Privacy Policy explains how we collect, 
                 use, disclose, and safeguard your information when you use our service.
               </p>
             </section>
@@ -122,14 +122,14 @@ export default function Privacy() {
               <p className="text-muted-foreground">
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
-              <p className="text-accent font-semibold mt-2">privacy@tokienglish.com</p>
+              <p className="text-[#cc1f1f] font-semibold mt-2">privacy@tokienglish.com</p>
             </section>
 
             <section className="border-t border-border pt-6 mt-8">
               <h2 className="text-2xl font-bold mb-4">JLPT Trademark Notice</h2>
               <p className="text-muted-foreground text-sm">
                 JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
-                JLPT Master is not affiliated with or endorsed by the Japan Foundation or Japan Educational 
+                Master JLPT is not affiliated with or endorsed by the Japan Foundation or Japan Educational 
                 Exchanges and Services. We are an independent study tool designed to help students prepare 
                 for the JLPT examination.
               </p>
@@ -139,12 +139,16 @@ export default function Privacy() {
 
         {/* Footer */}
         <footer className="border-t border-border bg-card py-8 mt-12">
-          <div className="container text-center">
+          <div className="container text-center space-y-2">
             <p className="text-sm">
-              Powered by <span className="text-accent font-bold">Toki English</span>
+              Powered by <span className="text-[#cc1f1f] font-bold">Toki English</span>
             </p>
-            <p className="text-xs text-muted-foreground mt-2">
+            <p className="text-xs text-muted-foreground">
               © {new Date().getFullYear()} Toki English. All rights reserved.
+            </p>
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
+              JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
+              This app is not affiliated with or endorsed by the Japan Foundation.
             </p>
           </div>
         </footer>

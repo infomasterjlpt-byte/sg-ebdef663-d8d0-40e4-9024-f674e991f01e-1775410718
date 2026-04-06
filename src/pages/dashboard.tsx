@@ -198,7 +198,7 @@ export default function Dashboard() {
 
   return (
     <>
-      <SEO title="Dashboard - JLPT Master" description="Your personalized JLPT study dashboard" />
+      <SEO title="Dashboard - Master JLPT" description="Your personalized JLPT study dashboard" />
       <AppLayout>
         <div className="max-w-7xl mx-auto space-y-6">
           <div className="flex items-center justify-between">
