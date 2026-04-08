@@ -4,7 +4,7 @@ import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
+import { Progress as ProgressBar } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, Calendar, Target } from "lucide-react";
 
@@ -39,7 +39,7 @@ type LevelProgress = {
   percentage: number;
 };
 
-export default function Progress() {
+export default function ProgressPage() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
@@ -147,6 +147,18 @@ export default function Progress() {
     );
   }
 
+  const totalQuestionsAnswered = currentLevelStats 
+    ? (Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0) as number)
+    : 0;
+    
+  const totalCorrectAnswers = currentLevelStats
+    ? (Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.correct, 0) as number)
+    : 0;
+    
+  const overallAccuracy = totalQuestionsAnswered > 0 
+    ? Math.round((totalCorrectAnswers / totalQuestionsAnswered) * 100) 
+    : 0;
+
   return (
     <>
       <SEO title="Progress - Master JLPT" description="Track your JLPT study progress" />
@@ -185,7 +197,7 @@ export default function Progress() {
                       </p>
                     </div>
                   </div>
-                  <Progress 
+                  <ProgressBar 
                     value={levelData.percentage} 
                     className={`h-2 ${levelData.percentage === 0 ? 'opacity-30' : ''}`}
                   />
@@ -212,7 +224,7 @@ export default function Progress() {
                         {stats.correct}/{stats.total} ({stats.accuracy}%)
                       </span>
                     </div>
-                    <Progress value={stats.accuracy} className="h-2" />
+                    <ProgressBar value={stats.accuracy} className="h-2" />
                   </div>
                 ))}
                 {(!currentLevelStats || Object.values(currentLevelStats).every((s: any) => s.total === 0)) && (
@@ -272,7 +284,7 @@ export default function Progress() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {currentLevelStats ? Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0) : 0}
+                  {totalQuestionsAnswered}
                 </div>
                 <p className="text-sm text-muted-foreground">{userProfile?.target_level} answered</p>
               </CardContent>
@@ -284,14 +296,7 @@ export default function Progress() {
               </CardHeader>
               <CardContent>
                 <div className="text-3xl font-bold">
-                  {currentLevelStats && Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0) > 0
-                    ? Math.round(
-                        (Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.correct, 0) /
-                          Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0)) *
-                          100
-                      )
-                    : 0}
-                  %
+                  {overallAccuracy}%
                 </div>
                 <p className="text-sm text-muted-foreground">{userProfile?.target_level} questions</p>
               </CardContent>
