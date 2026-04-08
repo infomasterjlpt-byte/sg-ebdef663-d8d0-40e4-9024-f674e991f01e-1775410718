@@ -61,8 +61,11 @@ export default function Practice() {
     if (level && category) {
       setSelectedLevel(level as string);
       setSelectedType(category as string);
+    } else if (userProfile?.target_level && !level) {
+      // Default to user's target level
+      setSelectedLevel(userProfile.target_level);
     }
-  }, [level, category]);
+  }, [level, category, userProfile]);
 
   useEffect(() => {
     if (selectedLevel && selectedType) {
@@ -242,6 +245,11 @@ export default function Practice() {
                       <SelectItem value="N1">N1 - Advanced</SelectItem>
                     </SelectContent>
                   </Select>
+                  {userProfile?.target_level && selectedLevel !== userProfile.target_level && (
+                    <p className="text-xs text-muted-foreground">
+                      Your main level is {userProfile.target_level}. You can practice other levels here.
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -253,7 +261,6 @@ export default function Practice() {
                     <SelectContent>
                       <SelectItem value="kanji">Kanji</SelectItem>
                       <SelectItem value="grammar">Grammar</SelectItem>
-                      <SelectItem value="vocabulary">Vocabulary</SelectItem>
                       <SelectItem value="reading">Reading</SelectItem>
                     </SelectContent>
                   </Select>

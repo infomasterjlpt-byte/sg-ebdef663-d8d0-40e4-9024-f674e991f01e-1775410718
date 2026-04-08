@@ -30,11 +30,11 @@ type TestSection = {
 };
 
 const LEVEL_COLORS = {
-  N5: "bg-level-n5",
-  N4: "bg-level-n4",
-  N3: "bg-level-n3",
-  N2: "bg-level-n2",
-  N1: "bg-level-n1",
+  N5: "bg-green-500",
+  N4: "bg-cyan-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-500",
 };
 
 const TEST_SECTIONS: { [key: string]: TestSection[] } = {
@@ -79,6 +79,13 @@ export default function MockTest() {
   useEffect(() => {
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    // Default to user's target level
+    if (userProfile?.target_level && !selectedLevel) {
+      setSelectedLevel(userProfile.target_level);
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     if (testState === "active" && timeRemaining > 0) {
@@ -225,7 +232,7 @@ export default function MockTest() {
   if (testState === "results" && testResults) {
     return (
       <>
-        <SEO title="Mock Test Results - JLPT Master" description="Your mock test results" />
+        <SEO title="Mock Test Results - Master JLPT" description="Your mock test results" />
         <AppLayout>
           <div className="max-w-4xl mx-auto space-y-6">
             <Card>
@@ -274,41 +281,6 @@ export default function MockTest() {
                   </Card>
                 </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-lg">Question Review</h3>
-                  {questions.map((q, index) => {
-                    const userAnswer = answers[index];
-                    const isCorrect = userAnswer === q.answer_index;
-                    return (
-                      <Card key={index} className={isCorrect ? "border-green-600" : "border-destructive"}>
-                        <CardContent className="pt-6">
-                          <div className="flex items-start gap-3 mb-3">
-                            {isCorrect ? (
-                              <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-1" />
-                            ) : (
-                              <X className="h-5 w-5 text-destructive flex-shrink-0 mt-1" />
-                            )}
-                            <div className="flex-1">
-                              <p className="font-medium mb-2">{q.question}</p>
-                              <p className="text-sm text-muted-foreground">
-                                <span className="font-medium">Correct Answer: </span>
-                                {q.options[q.answer_index]}
-                              </p>
-                              {userAnswer !== undefined && !isCorrect && (
-                                <p className="text-sm text-destructive">
-                                  <span className="font-medium">Your Answer: </span>
-                                  {q.options[userAnswer]}
-                                </p>
-                              )}
-                              <p className="text-sm mt-2">{q.explanation}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    );
-                  })}
-                </div>
-
                 <div className="flex gap-3">
                   <Button onClick={() => router.push("/practice")} variant="outline" className="flex-1">
                     Practice More
@@ -334,7 +306,7 @@ export default function MockTest() {
   if (testState === "active" && currentQuestion) {
     return (
       <>
-        <SEO title="Mock Test - JLPT Master" description="JLPT mock examination" />
+        <SEO title="Mock Test - Master JLPT" description="JLPT mock examination" />
         <AppLayout>
           <div className="max-w-4xl mx-auto space-y-6">
             <Card>
@@ -416,7 +388,7 @@ export default function MockTest() {
 
   return (
     <>
-      <SEO title="Mock Test - JLPT Master" description="Full JLPT mock examination" />
+      <SEO title="Mock Test - Master JLPT" description="Full JLPT mock examination" />
       <AppLayout>
         <div className="max-w-4xl mx-auto space-y-6">
           <div>
@@ -457,6 +429,7 @@ export default function MockTest() {
                           <div className="flex items-center gap-2">
                             <span>{level}</span>
                             {locked && <Lock className="h-3 w-3 opacity-35" />}
+                            {level === userProfile?.target_level && <Badge variant="outline" className="text-xs ml-1">Your Level</Badge>}
                           </div>
                         </SelectItem>
                       );

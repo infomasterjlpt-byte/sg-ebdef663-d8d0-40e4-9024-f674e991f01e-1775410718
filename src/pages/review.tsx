@@ -27,9 +27,18 @@ const STATUS_COLORS = {
   mastered: "bg-green-600",
 };
 
+const LEVEL_COLORS = {
+  N5: "bg-green-500",
+  N4: "bg-cyan-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-500",
+};
+
 export default function Review() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [questions, setQuestions] = useState<ReviewQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -47,10 +56,20 @@ export default function Review() {
       return;
     }
     setUser(user);
-    loadReviewQuestions(user.id);
+
+    const { data: profile } = await supabase
+      .from("users")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    setUserProfile(profile);
+    if (profile?.target_level) {
+      loadReviewQuestions(user.id, profile.target_level);
+    }
   }
 
-  async function loadReviewQuestions(userId: string) {
+  async function loadReviewQuestions(userId: string, targetLevel: string) {
     setLoading(true);
     
     const { data, error } = await supabase
@@ -60,7 +79,7 @@ export default function Review() {
         status,
         correct_streak,
         question_id,
-        questions (
+        questions!inner (
           id,
           level,
           type,
@@ -72,6 +91,7 @@ export default function Review() {
         )
       `)
       .eq("user_id", userId)
+      .eq("questions.level", targetLevel)
       .neq("status", "mastered")
       .order("last_reviewed_at", { ascending: true })
       .limit(20);
@@ -132,7 +152,9 @@ export default function Review() {
       setSelectedAnswer(null);
       setShowResult(false);
     } else {
-      loadReviewQuestions(user.id);
+      if (userProfile?.target_level) {
+        loadReviewQuestions(user.id, userProfile.target_level);
+      }
       setCurrentIndex(0);
       setSelectedAnswer(null);
       setShowResult(false);
@@ -145,7 +167,7 @@ export default function Review() {
   if (loading) {
     return (
       <>
-        <SEO title="Review - JLPT Master" description="Review weak questions" />
+        <SEO title="Review - Master JLPT" description="Review weak questions" />
         <AppLayout>
           <div className="flex items-center justify-center min-h-[60vh]">
             <p className="text-muted-foreground">Loading review questions...</p>
@@ -158,15 +180,15 @@ export default function Review() {
   if (questions.length === 0) {
     return (
       <>
-        <SEO title="Review - JLPT Master" description="Review weak questions" />
+        <SEO title="Review - Master JLPT" description="Review weak questions" />
         <AppLayout>
           <div className="max-w-4xl mx-auto">
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-16">
                 <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-bold mb-2">No Questions to Review</h2>
+                <h2 className="text-2xl font-bold mb-2">No {userProfile?.target_level} Questions to Review</h2>
                 <p className="text-muted-foreground text-center mb-6">
-                  You haven't answered any questions incorrectly yet.<br />
+                  You haven't answered any {userProfile?.target_level} questions incorrectly yet.<br />
                   Start practicing to build your review queue.
                 </p>
                 <Button onClick={() => router.push("/practice")}>
@@ -182,11 +204,11 @@ export default function Review() {
 
   return (
     <>
-      <SEO title="Review - JLPT Master" description="Review weak questions" />
+      <SEO title="Review - Master JLPT" description="Review weak questions" />
       <AppLayout>
         <div className="max-w-4xl mx-auto space-y-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Review Mode</h1>
+            <h1 className="text-3xl font-bold mb-2">Review Mode ({userProfile?.target_level})</h1>
             <p className="text-muted-foreground">
               Review questions you got wrong to master them
             </p>
@@ -203,7 +225,7 @@ export default function Review() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <Badge className="bg-level-n3 text-white">
+                  <Badge className={`${LEVEL_COLORS[question.level as keyof typeof LEVEL_COLORS]} text-white`}>
                     {question.level} - Question {currentIndex + 1}/{questions.length}
                   </Badge>
                   <Badge className={`${STATUS_COLORS[question.status as keyof typeof STATUS_COLORS]} text-white`}>
