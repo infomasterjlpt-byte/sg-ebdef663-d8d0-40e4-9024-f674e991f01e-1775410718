@@ -4,55 +4,49 @@ import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
-import { getProgressStats } from "@/services/progressService";
-import { BookOpen, FileText, Languages, BookMarked } from "lucide-react";
+import { Trophy, TrendingUp, Calendar, Target } from "lucide-react";
 
-const LEVEL_SYLLABUS = {
-  N5: { kanji: 100, vocabulary: 800, grammar: 285, reading: 212, total: 1397 },
-  N4: { kanji: 300, vocabulary: 1500, grammar: 300, reading: 250, total: 2350 },
-  N3: { kanji: 650, vocabulary: 3700, grammar: 350, reading: 300, total: 5000 },
-  N2: { kanji: 1000, vocabulary: 6000, grammar: 400, reading: 350, total: 7750 },
-  N1: { kanji: 2000, vocabulary: 10000, grammar: 450, reading: 400, total: 12850 },
+const LEVEL_TOTALS: { [key: string]: number } = {
+  N5: 997,
+  N4: 1150,
+  N3: 1450,
+  N2: 1650,
+  N1: 1850,
 };
 
-const CATEGORY_CONFIG = {
-  kanji: { 
-    label: "Kanji (漢)", 
-    icon: BookOpen, 
-    color: "bg-accent", 
-    textColor: "text-accent",
-    lightBg: "bg-red-50 dark:bg-red-950/20"
-  },
-  grammar: { 
-    label: "Grammar (文)", 
-    icon: FileText, 
-    color: "bg-level-n4", 
-    textColor: "text-level-n4",
-    lightBg: "bg-teal-50 dark:bg-teal-950/20"
-  },
-  vocabulary: { 
-    label: "Vocabulary (語)", 
-    icon: Languages, 
-    color: "bg-level-n2", 
-    textColor: "text-level-n2",
-    lightBg: "bg-yellow-50 dark:bg-yellow-950/20"
-  },
-  reading: { 
-    label: "Reading (読)", 
-    icon: BookMarked, 
-    color: "bg-blue-600", 
-    textColor: "text-blue-600",
-    lightBg: "bg-blue-50 dark:bg-blue-950/20"
-  },
+const LEVEL_NAMES: { [key: string]: string } = {
+  N5: "Beginner",
+  N4: "Elementary",
+  N3: "Intermediate",
+  N2: "Upper Intermediate",
+  N1: "Advanced",
+};
+
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "bg-green-500",
+  N4: "bg-cyan-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-500",
+};
+
+type LevelProgress = {
+  level: string;
+  mastered: number;
+  total: number;
+  percentage: number;
 };
 
 export default function Progress() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [allLevelsProgress, setAllLevelsProgress] = useState<LevelProgress[]>([]);
+  const [currentLevelStats, setCurrentLevelStats] = useState<any>(null);
+  const [weeklyProgress, setWeeklyProgress] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<any>(null);
 
   useEffect(() => {
     checkAuth();
@@ -61,7 +55,7 @@ export default function Progress() {
   async function checkAuth() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      router.push("/auth/login");
+      router.push("/");
       return;
     }
     setUser(user);
@@ -72,177 +66,237 @@ export default function Progress() {
       .eq("id", user.id)
       .single();
 
-    setUserProfile(profile);
-    
-    if (profile?.target_level) {
-      const progressData = await getProgressStats(user.id, profile.target_level);
-      setStats(progressData);
+    if (!profile?.target_level) {
+      router.push("/level-selection");
+      return;
     }
+
+    setUserProfile(profile);
+    await loadProgressData(user.id, profile.target_level);
+  }
+
+  async function loadProgressData(userId: string, targetLevel: string) {
+    // Load progress for all levels
+    const levels = ["N5", "N4", "N3", "N2", "N1"];
+    const levelProgressData: LevelProgress[] = [];
+
+    for (const level of levels) {
+      const { data: mastered } = await supabase
+        .from("review_items")
+        .select("id, questions!inner(*)")
+        .eq("user_id", userId)
+        .eq("questions.level", level)
+        .eq("status", "mastered");
+
+      const masteredCount = mastered?.length || 0;
+      const total = LEVEL_TOTALS[level];
+      const percentage = Math.min(Math.round((masteredCount / total) * 100), 100);
+
+      levelProgressData.push({
+        level,
+        mastered: masteredCount,
+        total,
+        percentage,
+      });
+    }
+
+    setAllLevelsProgress(levelProgressData);
+
+    // Load detailed stats for current level
+    const { data: categoryResults } = await supabase
+      .from("results")
+      .select("*, questions(*)")
+      .eq("user_id", userId);
+
+    const levelResults = categoryResults?.filter((r: any) => r.questions?.level === targetLevel) || [];
+    const categories = ["kanji", "grammar", "vocabulary", "reading"];
+    const categoryStats: any = {};
+
+    categories.forEach((cat) => {
+      const catResults = levelResults.filter((r: any) => r.questions?.category === cat);
+      const catCorrect = catResults.filter((r: any) => r.correct).length;
+      categoryStats[cat] = {
+        total: catResults.length,
+        correct: catCorrect,
+        accuracy: catResults.length > 0 ? Math.round((catCorrect / catResults.length) * 100) : 0,
+      };
+    });
+
+    setCurrentLevelStats(categoryStats);
+
+    // Load weekly progress
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
     
+    const { data: dailyData } = await supabase
+      .from("daily_progress")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", weekAgo.toISOString().split("T")[0])
+      .order("date", { ascending: true });
+
+    setWeeklyProgress(dailyData || []);
     setLoading(false);
   }
 
   if (loading) {
     return (
-      <>
-        <SEO title="Progress - JLPT Master" description="Track your learning progress" />
-        <AppLayout>
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <p className="text-muted-foreground">Loading progress data...</p>
-          </div>
-        </AppLayout>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading progress...</p>
+      </div>
     );
   }
-
-  if (!userProfile?.target_level) {
-    return (
-      <>
-        <SEO title="Progress - JLPT Master" description="Track your learning progress" />
-        <AppLayout>
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <h2 className="text-2xl font-bold mb-2">Set Your Target Level</h2>
-                <p className="text-muted-foreground text-center mb-6">
-                  Choose your target JLPT level to track your progress
-                </p>
-                <button onClick={() => router.push("/level-selection")} className="text-accent hover:underline">
-                  Select Level →
-                </button>
-              </CardContent>
-            </Card>
-          </div>
-        </AppLayout>
-      </>
-    );
-  }
-
-  const syllabus = LEVEL_SYLLABUS[userProfile.target_level as keyof typeof LEVEL_SYLLABUS];
-  const overallProgress = stats ? Math.round((stats.mastered / syllabus.total) * 100) : 0;
 
   return (
     <>
-      <SEO title="Progress - JLPT Master" description="Track your JLPT learning progress" />
+      <SEO title="Progress - Master JLPT" description="Track your JLPT study progress" />
       <AppLayout>
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="max-w-7xl mx-auto space-y-6">
           <div>
-            <h1 className="text-3xl font-bold mb-2">Your Progress</h1>
-            <p className="text-muted-foreground">
-              Tracking {userProfile.target_level} level mastery
-            </p>
+            <h1 className="text-3xl font-bold mb-1">Your Progress</h1>
+            <p className="text-muted-foreground">Track your journey to JLPT mastery</p>
           </div>
 
-          <Card className="bg-gradient-to-r from-accent/10 to-accent/5 border-accent">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h2 className="text-2xl font-bold">Overall Progress</h2>
-                  <p className="text-muted-foreground">{userProfile.target_level} Level</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-4xl font-bold text-accent">{overallProgress}%</p>
-                  <p className="text-sm text-muted-foreground">
-                    {stats?.mastered || 0} / {syllabus.total} mastered
-                  </p>
-                </div>
-              </div>
-              <div className="bg-surface h-3 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-accent transition-all duration-500"
-                  style={{ width: `${overallProgress}%` }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {(Object.keys(CATEGORY_CONFIG) as Array<keyof typeof CATEGORY_CONFIG>).map((category) => {
-              const config = CATEGORY_CONFIG[category];
-              const Icon = config.icon;
-              const categoryStats = stats?.categoryStats?.[category] || { mastered: 0, hard: 0, learning: 0 };
-              const categoryTotal = syllabus[category as keyof typeof syllabus] as number;
-              const attempted = categoryStats.mastered + categoryStats.hard + categoryStats.learning;
-              const progress = categoryTotal > 0 ? Math.round((categoryStats.mastered / categoryTotal) * 100) : 0;
-
-              return (
-                <Card key={category} className={config.lightBg}>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-lg ${config.color} text-white`}>
-                          <Icon className="h-5 w-5" />
-                        </div>
-                        <CardTitle className="text-lg">{config.label}</CardTitle>
-                      </div>
-                      <span className={`text-2xl font-bold ${config.textColor}`}>{progress}%</span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className={`h-2 rounded-full overflow-hidden ${config.color}/20`}>
-                      <div
-                        className={`h-full ${config.color} transition-all duration-500`}
-                        style={{ width: `${progress}%` }}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-2 text-sm">
-                      <div className="text-center">
-                        <Badge className="bg-green-600 text-white w-full">
-                          {categoryStats.mastered}
-                        </Badge>
-                        <p className="text-muted-foreground mt-1">Mastered</p>
-                      </div>
-                      <div className="text-center">
-                        <Badge className="bg-level-n2 text-white w-full">
-                          {categoryStats.learning}
-                        </Badge>
-                        <p className="text-muted-foreground mt-1">Learning</p>
-                      </div>
-                      <div className="text-center">
-                        <Badge className="bg-destructive text-white w-full">
-                          {categoryStats.hard}
-                        </Badge>
-                        <p className="text-muted-foreground mt-1">Hard</p>
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-border">
-                      <p className="text-sm text-muted-foreground">
-                        {attempted} / {categoryTotal} attempted
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-
+          {/* All Levels Overview */}
           <Card>
             <CardHeader>
-              <CardTitle>Study Statistics</CardTitle>
+              <CardTitle className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-accent" />
+                All Levels Overview
+              </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-accent">{stats?.accuracy || 0}%</p>
-                  <p className="text-sm text-muted-foreground">Overall Accuracy</p>
+            <CardContent className="space-y-4">
+              {allLevelsProgress.map((levelData) => (
+                <div key={levelData.level} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge className={`${LEVEL_COLORS[levelData.level]} text-white`}>
+                        {levelData.level}
+                      </Badge>
+                      <span className="font-medium">{LEVEL_NAMES[levelData.level]}</span>
+                      {levelData.level === userProfile?.target_level && (
+                        <Badge variant="outline" className="text-xs">Current</Badge>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="font-bold text-lg">{levelData.percentage}%</span>
+                      <p className="text-xs text-muted-foreground">
+                        {levelData.mastered}/{levelData.total} mastered
+                      </p>
+                    </div>
+                  </div>
+                  <Progress 
+                    value={levelData.percentage} 
+                    className={`h-2 ${levelData.percentage === 0 ? 'opacity-30' : ''}`}
+                  />
                 </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-accent">{stats?.totalQuestions || 0}</p>
-                  <p className="text-sm text-muted-foreground">Questions Answered</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-accent">{userProfile.streak || 0}</p>
-                  <p className="text-sm text-muted-foreground">Day Streak</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-3xl font-bold text-accent">{stats?.mastered || 0}</p>
-                  <p className="text-sm text-muted-foreground">Total Mastered</p>
-                </div>
-              </div>
+              ))}
             </CardContent>
           </Card>
+
+          {/* Current Level Detailed Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="h-5 w-5 text-accent" />
+                  {userProfile?.target_level} Category Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {currentLevelStats && Object.entries(currentLevelStats).map(([category, stats]: [string, any]) => (
+                  <div key={category}>
+                    <div className="flex justify-between mb-2">
+                      <span className="text-sm font-medium capitalize">{category}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {stats.correct}/{stats.total} ({stats.accuracy}%)
+                      </span>
+                    </div>
+                    <Progress value={stats.accuracy} className="h-2" />
+                  </div>
+                ))}
+                {(!currentLevelStats || Object.values(currentLevelStats).every((s: any) => s.total === 0)) && (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    Start practicing {userProfile?.target_level} to see category stats
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5 text-accent" />
+                  Weekly Activity
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {weeklyProgress.length > 0 ? (
+                  <div className="space-y-3">
+                    {weeklyProgress.map((day) => (
+                      <div key={day.date} className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">
+                          {new Date(day.date).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{day.questions_answered} questions</span>
+                          {day.goal_met && <Trophy className="h-4 w-4 text-accent" />}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No activity this week. Start practicing!
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Study Stats */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Current Streak</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">{userProfile?.streak || 0}</div>
+                <p className="text-sm text-muted-foreground">days in a row</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Total Questions</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {currentLevelStats ? Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0) : 0}
+                </div>
+                <p className="text-sm text-muted-foreground">{userProfile?.target_level} answered</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-sm">Overall Accuracy</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-bold">
+                  {currentLevelStats && Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0) > 0
+                    ? Math.round(
+                        (Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.correct, 0) /
+                          Object.values(currentLevelStats).reduce((sum: number, s: any) => sum + s.total, 0)) *
+                          100
+                      )
+                    : 0}
+                  %
+                </div>
+                <p className="text-sm text-muted-foreground">{userProfile?.target_level} questions</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </AppLayout>
     </>
