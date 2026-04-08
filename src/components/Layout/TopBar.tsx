@@ -8,12 +8,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { LevelChangeModal } from "@/components/LevelChangeModal";
+
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "bg-green-500",
+  N4: "bg-cyan-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-500",
+};
 
 export function TopBar() {
   const router = useRouter();
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isPremium, setIsPremium] = useState(false);
+  const [showLevelModal, setShowLevelModal] = useState(false);
   const { currency, setCurrency } = useCurrency();
 
   useEffect(() => {
@@ -23,20 +34,23 @@ export function TopBar() {
       document.documentElement.classList.toggle("dark", savedTheme === "dark");
     }
 
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) {
-        supabase
-          .from("users")
-          .select("is_premium")
-          .eq("id", data.user.id)
-          .single()
-          .then(({ data: userData }) => {
-            setIsPremium(userData?.is_premium || false);
-          });
-      }
-    });
+    loadUserData();
   }, []);
+
+  async function loadUserData() {
+    const { data } = await supabase.auth.getUser();
+    setUser(data.user);
+    if (data.user) {
+      const { data: userData } = await supabase
+        .from("users")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+      
+      setUserProfile(userData);
+      setIsPremium(userData?.is_premium || false);
+    }
+  }
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
@@ -50,74 +64,100 @@ export function TopBar() {
     router.push("/");
   };
 
+  const handleLevelChanged = () => {
+    loadUserData();
+    router.reload();
+  };
+
   return (
-    <header className="border-b border-border bg-card">
-      <div className="container">
-        <div className="flex h-16 items-center justify-between">
-          <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
-            <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
-              <span className="font-extrabold text-[#111111]">Master</span>
-              <span className="font-normal text-[#cc1f1f]">JLPT</span>
-            </div>
-          </Link>
+    <>
+      <header className="border-b border-border bg-card">
+        <div className="container">
+          <div className="flex h-16 items-center justify-between">
+            <Link href="/dashboard" className="flex items-center gap-2.5">
+              <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
+                <span className="text-white font-bold text-xl">M</span>
+              </div>
+              <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
+                <span className="font-extrabold text-[#111111]">Master</span>
+                <span className="font-normal text-[#cc1f1f]">JLPT</span>
+              </div>
+            </Link>
 
-          <div className="flex items-center gap-3">
-            <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
-              <SelectTrigger className="w-[100px] h-9">
-                <Globe className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="JPY">¥ JPY</SelectItem>
-                <SelectItem value="USD">$ USD</SelectItem>
-                <SelectItem value="BDT">৳ BDT</SelectItem>
-                <SelectItem value="NPR">₨ NPR</SelectItem>
-                <SelectItem value="INR">₹ INR</SelectItem>
-                <SelectItem value="VND">₫ VND</SelectItem>
-                <SelectItem value="LKR">රු LKR</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-3">
+              <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
+                <SelectTrigger className="w-[100px] h-9">
+                  <Globe className="h-4 w-4 mr-2" />
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="JPY">¥ JPY</SelectItem>
+                  <SelectItem value="USD">$ USD</SelectItem>
+                  <SelectItem value="BDT">৳ BDT</SelectItem>
+                  <SelectItem value="NPR">₨ NPR</SelectItem>
+                  <SelectItem value="INR">₹ INR</SelectItem>
+                  <SelectItem value="VND">₫ VND</SelectItem>
+                  <SelectItem value="LKR">රු LKR</SelectItem>
+                </SelectContent>
+              </Select>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full"
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5" />
-              ) : (
-                <Sun className="h-5 w-5" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="rounded-full"
+              >
+                {theme === "light" ? (
+                  <Moon className="h-5 w-5" />
+                ) : (
+                  <Sun className="h-5 w-5" />
+                )}
+              </Button>
+
+              {isPremium && (
+                <Badge className="bg-primary text-primary-foreground">Premium</Badge>
               )}
-            </Button>
 
-            {isPremium && (
-              <Badge className="bg-primary text-primary-foreground">Premium</Badge>
-            )}
-
-            {user && (
-              <>
-                <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/settings")}>
-                  <AvatarFallback className="bg-primary text-primary-foreground">
-                    {user.email?.[0]?.toUpperCase() || "U"}
-                  </AvatarFallback>
-                </Avatar>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleSignOut}
-                  className="rounded-full"
+              {user && userProfile?.target_level && (
+                <Badge 
+                  className={`${LEVEL_COLORS[userProfile.target_level]} text-white cursor-pointer hover:opacity-90`}
+                  onClick={() => setShowLevelModal(true)}
                 >
-                  <LogOut className="h-5 w-5" />
-                </Button>
-              </>
-            )}
+                  {userProfile.target_level}
+                </Badge>
+              )}
+
+              {user && (
+                <>
+                  <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/settings")}>
+                    <AvatarFallback className="bg-primary text-primary-foreground">
+                      {user.email?.[0]?.toUpperCase() || "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleSignOut}
+                    className="rounded-full"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {user && userProfile && (
+        <LevelChangeModal
+          open={showLevelModal}
+          onOpenChange={setShowLevelModal}
+          currentLevel={userProfile.target_level || "N5"}
+          userId={user.id}
+          onLevelChanged={handleLevelChanged}
+        />
+      )}
+    </>
   );
 }

@@ -6,15 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
+import { LevelChangeModal } from "@/components/LevelChangeModal";
 import { Flame, Target, Clock, TrendingUp, BookOpen, Award, AlertCircle, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 const LEVEL_TOTALS: { [key: string]: number } = {
   N5: 997,
-  N4: 2350,
-  N3: 5000,
-  N2: 7750,
-  N1: 12850,
+  N4: 1150,
+  N3: 1450,
+  N2: 1650,
+  N1: 1850,
+};
+
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "bg-green-500",
+  N4: "bg-cyan-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-500",
 };
 
 const CATEGORY_LABELS: { [key: string]: string } = {
@@ -55,6 +64,7 @@ export default function Dashboard() {
   const [totalStudyTime, setTotalStudyTime] = useState(0);
   const [overallProgress, setOverallProgress] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showLevelModal, setShowLevelModal] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -103,24 +113,27 @@ export default function Dashboard() {
       
       supabase
         .from("review_items")
-        .select("*")
+        .select("*, questions!inner(*)")
         .eq("user_id", userId)
+        .eq("questions.level", targetLevel)
         .neq("status", "mastered"),
       
       supabase
         .from("mock_tests")
         .select("time_taken")
-        .eq("user_id", userId),
+        .eq("user_id", userId)
+        .eq("level", targetLevel),
 
       supabase
         .from("review_items")
-        .select("id")
+        .select("id, questions!inner(*)")
         .eq("user_id", userId)
+        .eq("questions.level", targetLevel)
         .eq("status", "mastered")
     ]);
 
     setTodayProgress(progressRes.data);
-    setRecentResults((resultsRes.data || []) as unknown as RecentResult[]);
+    setRecentResults((resultsRes.data || []).filter((r: any) => r.questions?.level === targetLevel) as unknown as RecentResult[]);
     setReviewCount(reviewRes.data?.length || 0);
 
     const totalTime = testsRes.data?.reduce((sum, test) => sum + (test.time_taken || 0), 0) || 0;
@@ -182,6 +195,10 @@ export default function Dashboard() {
     };
   }
 
+  const handleLevelChanged = () => {
+    router.reload();
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -204,9 +221,18 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold mb-1">Welcome back!</h1>
-              <p className="text-muted-foreground">
-                Target Level: <Badge variant="outline">{userProfile?.target_level}</Badge>
-              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground">Target Level:</span>
+                <Badge variant="outline" className={`${LEVEL_COLORS[userProfile?.target_level]} text-white border-0`}>
+                  {userProfile?.target_level}
+                </Badge>
+                <button 
+                  onClick={() => setShowLevelModal(true)}
+                  className="text-sm text-gray-500 hover:text-[#cc1f1f] underline"
+                >
+                  Change
+                </button>
+              </div>
             </div>
           </div>
 
@@ -337,7 +363,7 @@ export default function Dashboard() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
-                <CardTitle>Category Performance</CardTitle>
+                <CardTitle>Category Performance ({userProfile?.target_level})</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 {categoryStats && Object.entries(categoryStats).map(([category, stats]) => (
@@ -397,6 +423,16 @@ export default function Dashboard() {
           </div>
         </div>
       </AppLayout>
+
+      {user && userProfile && (
+        <LevelChangeModal
+          open={showLevelModal}
+          onOpenChange={setShowLevelModal}
+          currentLevel={userProfile.target_level || "N5"}
+          userId={user.id}
+          onLevelChanged={handleLevelChanged}
+        />
+      )}
     </>
   );
 }
