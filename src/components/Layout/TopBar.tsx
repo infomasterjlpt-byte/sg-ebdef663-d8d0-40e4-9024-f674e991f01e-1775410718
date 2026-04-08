@@ -79,7 +79,7 @@ export function TopBar() {
                 <span className="text-white font-bold text-xl">M</span>
               </div>
               <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
-                <span className="font-extrabold text-[#111111]">Master</span>
+                <span className="font-extrabold text-foreground dark:text-white">Master</span>
                 <span className="font-normal text-[#cc1f1f]">JLPT</span>
               </div>
             </Link>
