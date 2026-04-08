@@ -217,10 +217,11 @@ export default function Dashboard() {
     <>
       <SEO title="Dashboard - Master JLPT" description="Your personalized JLPT study dashboard" />
       <AppLayout>
-        <div className="max-w-7xl mx-auto space-y-6">
+        <div className="space-y-6">
+          {/* Welcome Section */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold mb-1">Welcome back!</h1>
+              <h1 className="text-3xl font-bold mb-2">Welcome back!</h1>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground">Target Level:</span>
                 <Badge variant="outline" className={`${LEVEL_COLORS[userProfile?.target_level]} text-white border-0`}>
@@ -236,7 +237,8 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Stats Cards - All 4 visible */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Daily Streak</CardTitle>
@@ -282,6 +284,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Today's Goal & Recommended Actions */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
@@ -360,6 +363,7 @@ export default function Dashboard() {
             </Card>
           </div>
 
+          {/* Category Performance & Recent Activity */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
               <CardHeader>

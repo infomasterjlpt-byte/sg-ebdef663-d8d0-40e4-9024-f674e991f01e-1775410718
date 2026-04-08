@@ -13,32 +13,41 @@ const NAV_ITEMS = [
   { href: "/pricing", label: "Pricing", icon: CreditCard },
 ];
 
-export function Navigation() {
+interface NavigationProps {
+  onNavigate?: () => void;
+}
+
+export function Navigation({ onNavigate }: NavigationProps) {
   const router = useRouter();
 
+  const handleClick = () => {
+    if (onNavigate) {
+      onNavigate();
+    }
+  };
+
   return (
-    <nav className="w-64 border-r border-border bg-card h-screen sticky top-16 overflow-y-auto">
-      <div className="p-4 space-y-2">
-        {NAV_ITEMS.map((item) => {
-          const Icon = item.icon;
-          const isActive = router.pathname === item.href;
-          
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Icon className="h-5 w-5" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
+    <nav className="p-4 space-y-2">
+      {NAV_ITEMS.map((item) => {
+        const Icon = item.icon;
+        const isActive = router.pathname === item.href;
+        
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={handleClick}
+            className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
+              isActive
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Icon className="h-5 w-5" />
+            <span className="font-medium">{item.label}</span>
+          </Link>
+        );
+      })}
     </nav>
   );
 }
