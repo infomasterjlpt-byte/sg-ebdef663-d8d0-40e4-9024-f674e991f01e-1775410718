@@ -32,7 +32,7 @@ export default function Signup() {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: "https://www.master-jlpt.com/auth/callback",
       },
     });
 
@@ -51,7 +51,7 @@ export default function Signup() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: "https://www.master-jlpt.com/auth/callback",
       },
     });
 

@@ -13,24 +13,22 @@ export interface AuthError {
   code?: string;
 }
 
-// Dynamic URL Helper
+// Production URL Helper
 const getURL = () => {
-  let url = process?.env?.NEXT_PUBLIC_VERCEL_URL ?? 
-           process?.env?.NEXT_PUBLIC_SITE_URL ?? 
-           'http://localhost:3000'
+  // Always use production URL for OAuth redirects
+  const productionUrl = 'https://www.master-jlpt.com';
   
-  // Handle undefined or null url
-  if (!url) {
-    url = 'http://localhost:3000';
+  // In development, use localhost for non-OAuth flows
+  if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+    return window.location.origin;
   }
   
-  // Ensure url has protocol
-  url = url.startsWith('http') ? url : `https://${url}`
-  
-  // Ensure url ends with slash
-  url = url.endsWith('/') ? url : `${url}/`
-  
-  return url
+  return productionUrl;
+}
+
+// OAuth-specific redirect (always production)
+const getOAuthRedirectURL = () => {
+  return 'https://www.master-jlpt.com/auth/callback';
 }
 
 export const authService = {
@@ -58,7 +56,7 @@ export const authService = {
         email,
         password,
         options: {
-          emailRedirectTo: `${getURL()}auth/confirm-email`
+          emailRedirectTo: `${getURL()}/auth/callback`
         }
       });
 
@@ -131,7 +129,7 @@ export const authService = {
   async resetPassword(email: string): Promise<{ error: AuthError | null }> {
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${getURL()}auth/reset-password`,
+        redirectTo: `${getURL()}/auth/reset-password`,
       });
 
       if (error) {
@@ -177,5 +175,10 @@ export const authService = {
   // Listen to auth state changes
   onAuthStateChange(callback: (event: string, session: Session | null) => void) {
     return supabase.auth.onAuthStateChange(callback);
+  },
+
+  // Get OAuth redirect URL
+  getOAuthRedirectURL() {
+    return getOAuthRedirectURL();
   }
 };

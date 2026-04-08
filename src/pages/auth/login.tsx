@@ -31,7 +31,7 @@ export default function Login() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push("/");
+      router.push("/dashboard");
     }
   }
 
@@ -42,7 +42,7 @@ export default function Login() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: "https://www.master-jlpt.com/auth/callback",
       },
     });
 
