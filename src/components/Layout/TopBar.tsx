@@ -77,7 +77,7 @@ export function TopBar() {
           <div className="flex h-16 items-center justify-between">
             <Link href="/dashboard" className="flex items-center">
               <Image 
-                src="/logo.png" 
+                src="/logo.svg" 
                 alt="Master JLPT" 
                 width={150}
                 height={36}

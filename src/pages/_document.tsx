@@ -9,9 +9,9 @@ export default function Document() {
         <SEOElements />
         
         {/* Favicons */}
-        <link rel="icon" type="image/png" href="/logo.png" />
+        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-        <link rel="apple-touch-icon" href="/logo.png" />
+        <link rel="apple-touch-icon" href="/logo.svg" />
         
         {/* Web App Manifest */}
         <link rel="manifest" href="/manifest.json" />

@@ -35,7 +35,7 @@ export default function AuthCallback() {
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="text-center">
         <Image 
-          src="/logo.png" 
+          src="/logo.svg" 
           alt="Master JLPT" 
           width={150}
           height={36}

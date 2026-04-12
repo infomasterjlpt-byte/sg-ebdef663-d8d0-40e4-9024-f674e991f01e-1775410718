@@ -70,7 +70,7 @@ export default function Levels() {
           <div className="container flex items-center justify-between h-16">
             <Link href="/" className="flex items-center">
               <Image 
-                src="/logo.png" 
+                src="/logo.svg" 
                 alt="Master JLPT" 
                 width={150}
                 height={36}
