@@ -294,51 +294,85 @@ export default function Landing() {
       </section>
 
       {/* Levels Section */}
-      <section className="py-20 bg-surface">
+      <section className="py-20 bg-[#f8f8f8]">
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Choose your level</h2>
-            <p className="text-muted-foreground text-lg">From beginner to advanced — we have you covered</p>
+            <h2 className="text-4xl font-bold text-[#111111] mb-4">Choose your level</h2>
+            <p className="text-gray-600 text-lg">
+              Click any level to see the full syllabus and available practice questions.
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 max-w-6xl mx-auto">
-            {LEVELS.map((level) => (
-              <Card key={level.level} className="relative overflow-hidden">
-                <div className="absolute top-3 right-3">
-                  <Lock className="h-4 w-4 text-muted-foreground opacity-35" />
-                </div>
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-2">
-                    <Badge className={`${level.color} text-white`}>{level.level}</Badge>
-                    <Badge variant="outline" className="border-accent text-accent">Premium</Badge>
-                  </div>
-                  <CardTitle className="text-lg">{level.difficulty}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Kanji:</span>
-                    <span className="font-semibold">{level.kanji.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Vocabulary:</span>
-                    <span className="font-semibold">{level.vocab.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Grammar:</span>
-                    <span className="font-semibold">{level.grammar}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Reading:</span>
-                    <span className="font-semibold">{level.reading}</span>
-                  </div>
-                  <div className="pt-2 border-t border-border">
-                    <div className="flex justify-between font-bold">
-                      <span>Total:</span>
-                      <span>{level.total.toLocaleString()}</span>
-                    </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 max-w-7xl mx-auto">
+            {/* N5 Card */}
+            <Link href="/levels/n5" className="group">
+              <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ borderTop: '4px solid #22c55e' }}>
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="text-4xl font-bold" style={{ color: '#22c55e' }}>N5</div>
+                  <h3 className="font-bold text-xl text-[#111111]">Beginner</h3>
+                  <p className="text-gray-600 text-sm">Perfect starting point</p>
+                  <div className="pt-2">
+                    <span className="text-[#cc1f1f] text-sm font-medium">View Syllabus →</span>
                   </div>
                 </CardContent>
               </Card>
-            ))}
+            </Link>
+
+            {/* N4 Card */}
+            <Link href="/levels/n4" className="group">
+              <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ borderTop: '4px solid #14b8a6' }}>
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="text-4xl font-bold" style={{ color: '#14b8a6' }}>N4</div>
+                  <h3 className="font-bold text-xl text-[#111111]">Elementary</h3>
+                  <p className="text-gray-600 text-sm">Elementary</p>
+                  <div className="pt-2">
+                    <span className="text-[#cc1f1f] text-sm font-medium">View Syllabus →</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* N3 Card */}
+            <Link href="/levels/n3" className="group">
+              <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ borderTop: '4px solid #8b5cf6' }}>
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="text-4xl font-bold" style={{ color: '#8b5cf6' }}>N3</div>
+                  <h3 className="font-bold text-xl text-[#111111]">Intermediate</h3>
+                  <p className="text-gray-600 text-sm">Intermediate</p>
+                  <div className="pt-2">
+                    <span className="text-[#cc1f1f] text-sm font-medium">View Syllabus →</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* N2 Card */}
+            <Link href="/levels/n2" className="group">
+              <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ borderTop: '4px solid #f59e0b' }}>
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="text-4xl font-bold" style={{ color: '#f59e0b' }}>N2</div>
+                  <h3 className="font-bold text-xl text-[#111111]">Upper Intermediate</h3>
+                  <p className="text-gray-600 text-sm">Upper intermediate</p>
+                  <div className="pt-2">
+                    <span className="text-[#cc1f1f] text-sm font-medium">View Syllabus →</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* N1 Card */}
+            <Link href="/levels/n1" className="group">
+              <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer h-full" style={{ borderTop: '4px solid #991b1b' }}>
+                <CardContent className="p-6 text-center space-y-3">
+                  <div className="text-4xl font-bold" style={{ color: '#991b1b' }}>N1</div>
+                  <h3 className="font-bold text-xl text-[#111111]">Advanced</h3>
+                  <p className="text-gray-600 text-sm">Advanced</p>
+                  <div className="pt-2">
+                    <span className="text-[#cc1f1f] text-sm font-medium">View Syllabus →</span>
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </div>
       </section>
