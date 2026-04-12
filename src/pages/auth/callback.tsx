@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
+import Image from "next/image";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AuthCallback() {
@@ -33,9 +34,14 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="text-center">
-        <div className="w-16 h-16 bg-[#cc1f1f] rounded-[10px] mx-auto mb-4 flex items-center justify-center">
-          <span className="text-white font-bold text-3xl">M</span>
-        </div>
+        <Image 
+          src="/logo.png" 
+          alt="Master JLPT" 
+          width={150}
+          height={36}
+          className="h-[36px] w-auto mx-auto mb-4"
+          priority
+        />
         <p className="text-muted-foreground">Completing authentication...</p>
       </div>
     </div>

@@ -1,18 +1,54 @@
+import Link from "next/link";
+import Image from "next/image";
+
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card mt-auto">
-      <div className="container py-6">
-        <div className="text-center space-y-2">
-          <p className="text-sm text-muted-foreground">
-            Powered by <span className="text-primary font-bold">Toki English</span>
-          </p>
-          <p className="text-xs text-muted-foreground">
-            © 2025 Toki English. All rights reserved.
-          </p>
-          <p className="text-xs text-muted-foreground">
-            JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services.
-            This app is not affiliated with or endorsed by the Japan Foundation.
-          </p>
+    <footer className="border-t border-border bg-card py-8 mt-auto">
+      <div className="container">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="space-y-3">
+            <Image 
+              src="/logo.png" 
+              alt="Master JLPT" 
+              width={125}
+              height={30}
+              className="h-[30px] w-auto brightness-0 invert dark:brightness-100 dark:invert-0"
+            />
+            <p className="text-sm text-muted-foreground">
+              Master the JLPT with structured practice and progress tracking.
+            </p>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-3">Product</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/levels" className="hover:text-foreground">Levels</Link></li>
+              <li><Link href="/practice" className="hover:text-foreground">Practice</Link></li>
+              <li><Link href="/mock-test" className="hover:text-foreground">Mock Tests</Link></li>
+              <li><Link href="/pricing" className="hover:text-foreground">Pricing</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-3">Resources</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/grammar-guide" className="hover:text-foreground">Grammar Guide</Link></li>
+              <li><Link href="/exam-tips" className="hover:text-foreground">Exam Tips</Link></li>
+              <li><Link href="/progress" className="hover:text-foreground">Track Progress</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h3 className="font-semibold mb-3">Legal</h3>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              <li><Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+          <p>&copy; {new Date().getFullYear()} Master JLPT. All rights reserved.</p>
         </div>
       </div>
     </footer>

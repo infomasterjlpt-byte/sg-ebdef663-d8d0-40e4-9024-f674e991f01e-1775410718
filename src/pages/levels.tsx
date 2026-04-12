@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Image from "next/image";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -67,14 +68,15 @@ export default function Levels() {
         {/* Header */}
         <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
           <div className="container flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
-                <span className="text-white font-bold text-xl">M</span>
-              </div>
-              <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
-                <span className="font-extrabold text-[#111111]">Master</span>
-                <span className="font-normal text-[#cc1f1f]">JLPT</span>
-              </div>
+            <Link href="/" className="flex items-center">
+              <Image 
+                src="/logo.png" 
+                alt="Master JLPT" 
+                width={150}
+                height={36}
+                className="h-[36px] w-auto"
+                priority
+              />
             </Link>
           </div>
         </header>

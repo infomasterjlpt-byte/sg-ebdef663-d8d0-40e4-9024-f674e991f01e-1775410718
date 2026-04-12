@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import Image from "next/image";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,8 +68,15 @@ export default function Signup() {
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="w-16 h-16 bg-[#cc1f1f] rounded-[10px] mx-auto mb-4 flex items-center justify-center">
-              <span className="text-white font-bold text-3xl">M</span>
+            <div className="flex justify-center mb-4">
+              <Image 
+                src="/logo.png" 
+                alt="Master JLPT" 
+                width={150}
+                height={36}
+                className="h-[36px] w-auto"
+                priority
+              />
             </div>
             <CardTitle className="text-2xl">Get started</CardTitle>
             <CardDescription>Create your account to master JLPT</CardDescription>
