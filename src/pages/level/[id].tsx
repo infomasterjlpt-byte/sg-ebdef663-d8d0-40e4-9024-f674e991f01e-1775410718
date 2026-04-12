@@ -6,7 +6,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, ChevronRight } from "lucide-react";
-import Image from "next/image";
 
 const LEVEL_DATA: any = {
   n5: {
@@ -108,13 +107,10 @@ export default function LevelDetail() {
         <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
           <div className="container flex items-center justify-between h-16">
             <Link href="/levels" className="flex items-center">
-              <Image 
+              <img 
                 src="/logo.svg" 
                 alt="Master JLPT" 
-                width={150}
-                height={36}
-                className="h-[36px] w-auto"
-                priority
+                style={{ height: '40px', width: 'auto' }}
               />
             </Link>
           </div>

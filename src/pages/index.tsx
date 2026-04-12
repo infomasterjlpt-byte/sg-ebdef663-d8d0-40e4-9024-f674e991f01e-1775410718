@@ -151,14 +151,12 @@ export default function Landing() {
       {/* Header */}
       <header className="border-b border-border bg-card sticky top-0 z-50">
         <div className="container flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-2.5">
-            <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
-            <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
-              <span className="font-extrabold text-[#111111]">Master</span>
-              <span className="font-normal text-[#cc1f1f]">JLPT</span>
-            </div>
+          <Link href="/" className="flex items-center">
+            <img 
+              src="/logo.svg" 
+              alt="Master JLPT" 
+              style={{ height: '40px', width: 'auto' }}
+            />
           </Link>
           <div className="flex items-center gap-3">
             <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>

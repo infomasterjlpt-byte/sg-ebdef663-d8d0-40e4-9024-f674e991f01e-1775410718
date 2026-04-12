@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import Image from "next/image";
 import { SEO } from "@/components/SEO";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -65,23 +64,18 @@ export default function Levels() {
       <SEO title="Choose Your Level - Master JLPT" description="Select your JLPT level and start practicing" />
       
       <div className="min-h-screen bg-white">
-        {/* Header */}
         <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
           <div className="container flex items-center justify-between h-16">
             <Link href="/" className="flex items-center">
-              <Image 
+              <img 
                 src="/logo.svg" 
                 alt="Master JLPT" 
-                width={150}
-                height={36}
-                className="h-[36px] w-auto"
-                priority
+                style={{ height: '40px', width: 'auto' }}
               />
             </Link>
           </div>
         </header>
 
-        {/* Guest Mode Banner */}
         <div className="bg-blue-50 border-b border-blue-100">
           <div className="container py-4">
             <Alert className="bg-transparent border-0">
@@ -93,7 +87,6 @@ export default function Levels() {
           </div>
         </div>
 
-        {/* Main Content */}
         <div className="container py-12">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
@@ -111,7 +104,6 @@ export default function Levels() {
                   style={{ borderTop: `4px solid ${levelData.color}` }}
                 >
                   <CardContent className="p-6 space-y-4">
-                    {/* Level Icon */}
                     <div 
                       className="w-16 h-16 rounded-xl flex items-center justify-center"
                       style={{ backgroundColor: levelData.color }}
@@ -119,7 +111,6 @@ export default function Levels() {
                       <span className="text-white font-bold text-2xl">{levelData.level}</span>
                     </div>
 
-                    {/* Level Info */}
                     <div>
                       <h3 className="font-bold text-xl mb-1">{levelData.level}</h3>
                       <p className="text-gray-500 text-sm mb-2">{levelData.name}</p>
@@ -128,7 +119,6 @@ export default function Levels() {
                       </p>
                     </div>
 
-                    {/* Start Link */}
                     <Link 
                       href={`/level/${levelData.id}`}
                       className="flex items-center gap-1 text-[#cc1f1f] font-medium text-sm hover:gap-2 transition-all"
@@ -143,7 +133,6 @@ export default function Levels() {
           </div>
         </div>
 
-        {/* Footer */}
         <footer className="border-t border-gray-200 bg-white py-8 mt-12">
           <div className="container text-center">
             <p className="text-sm font-bold text-[#cc1f1f] mb-2">

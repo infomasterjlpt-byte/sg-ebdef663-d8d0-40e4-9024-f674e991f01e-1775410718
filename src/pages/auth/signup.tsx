@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
-import Image from "next/image";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,13 +68,10 @@ export default function Signup() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Image 
+              <img 
                 src="/logo.svg" 
                 alt="Master JLPT" 
-                width={150}
-                height={36}
-                className="h-[36px] w-auto"
-                priority
+                style={{ height: '40px', width: 'auto' }}
               />
             </div>
             <CardTitle className="text-2xl">Get started</CardTitle>

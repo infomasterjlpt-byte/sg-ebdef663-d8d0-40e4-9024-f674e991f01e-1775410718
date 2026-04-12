@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 
 export function Footer() {
   return (
@@ -7,12 +6,10 @@ export function Footer() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
-            <Image 
+            <img 
               src="/logo.svg" 
               alt="Master JLPT" 
-              width={125}
-              height={30}
-              className="h-[30px] w-auto brightness-0 invert dark:brightness-100 dark:invert-0"
+              style={{ height: '32px', width: 'auto', filter: 'brightness(0) invert(1)' }}
             />
             <p className="text-sm text-muted-foreground">
               Master the JLPT with structured practice and progress tracking.

@@ -9,7 +9,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { LevelChangeModal } from "@/components/LevelChangeModal";
-import Image from "next/image";
 
 const LEVEL_COLORS: { [key: string]: string } = {
   N5: "bg-green-500",
@@ -76,13 +75,10 @@ export function TopBar() {
         <div className="container">
           <div className="flex h-16 items-center justify-between">
             <Link href="/dashboard" className="flex items-center">
-              <Image 
+              <img 
                 src="/logo.svg" 
                 alt="Master JLPT" 
-                width={150}
-                height={36}
-                className="h-[36px] w-auto"
-                priority
+                style={{ height: '40px', width: 'auto' }}
               />
             </Link>
 

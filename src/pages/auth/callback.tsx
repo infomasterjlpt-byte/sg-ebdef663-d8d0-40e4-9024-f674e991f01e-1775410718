@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useRouter } from "next/router";
-import Image from "next/image";
 import { supabase } from "@/integrations/supabase/client";
 
 export default function AuthCallback() {
@@ -11,7 +10,6 @@ export default function AuthCallback() {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (session) {
-        // Check if user has target level set
         const { data: profile } = await supabase
           .from("users")
           .select("target_level")
@@ -34,13 +32,10 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="text-center">
-        <Image 
+        <img 
           src="/logo.svg" 
           alt="Master JLPT" 
-          width={150}
-          height={36}
-          className="h-[36px] w-auto mx-auto mb-4"
-          priority
+          style={{ height: '40px', width: 'auto', margin: '0 auto 1rem' }}
         />
         <p className="text-muted-foreground">Completing authentication...</p>
       </div>
