@@ -192,8 +192,24 @@ export default function Landing() {
         <div className="absolute left-0 top-0 bottom-0 w-[8px] bg-[#cc1f1f]" />
         
         {/* Japanese Watermark - Behind content */}
-        <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none" style={{ zIndex: 0 }}>
-          <span className="text-[180px] font-bold text-[#f0f0f0] opacity-15 leading-none">
+        <div 
+          className="absolute pointer-events-none select-none" 
+          style={{ 
+            right: '-20px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 0
+          }}
+        >
+          <span 
+            className="leading-none"
+            style={{
+              fontSize: '220px',
+              fontWeight: 900,
+              color: '#d4d4d4',
+              opacity: 0.5
+            }}
+          >
             日本語
           </span>
         </div>
