@@ -187,22 +187,65 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="py-20 md:py-32 bg-gradient-to-b from-background to-surface">
-        <div className="container">
-          <div className="max-w-4xl mx-auto text-center space-y-6">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              Master the JLPT.<br />One level at a time.
+      <section className="relative bg-white overflow-hidden">
+        {/* Red Left Accent Stripe */}
+        <div className="absolute left-0 top-0 bottom-0 w-[8px] bg-[#cc1f1f]" />
+        
+        {/* Japanese Watermark - Behind content */}
+        <div className="absolute right-0 top-1/2 -translate-y-1/2 pointer-events-none select-none" style={{ zIndex: 0 }}>
+          <span className="text-[180px] font-bold text-[#f0f0f0] opacity-15 leading-none">
+            日本語
+          </span>
+        </div>
+
+        {/* Content */}
+        <div className="container relative py-20 md:py-32" style={{ zIndex: 1 }}>
+          <div className="max-w-2xl">
+            {/* Headline */}
+            <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+              <span className="block text-[#111111]">Master the JLPT.</span>
+              <span className="block">
+                <span className="text-[#cc1f1f]">One level</span>
+                <span className="text-[#111111]"> at a time.</span>
+              </span>
             </h1>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-              Practice for N5 to N1. Track your progress, fix your weak points, and pass your exam.
+
+            {/* Subheadline */}
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed">
+              Structured kanji, grammar, and reading practice for every JLPT level. Study smarter, track your progress, pass your exam.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-              <Button size="lg" asChild>
-                <Link href="/levels">Start Now</Link>
+
+            {/* Buttons */}
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+              <Button size="lg" className="bg-[#cc1f1f] hover:bg-[#b01b1b] text-white px-8" asChild>
+                <Link href="/levels">Start Learning</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
-                <Link href="#pricing">See Pricing</Link>
+              <Button size="lg" variant="outline" className="border-2 border-gray-300 hover:border-[#cc1f1f] hover:text-[#cc1f1f]" asChild>
+                <Link href="/auth/login">Login</Link>
               </Button>
+            </div>
+
+            {/* Feature Pills */}
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Check className="h-4 w-4 text-[#cc1f1f]" />
+                <span>N5 to N1</span>
+              </div>
+              <span className="text-gray-300">·</span>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Check className="h-4 w-4 text-[#cc1f1f]" />
+                <span>Track Progress</span>
+              </div>
+              <span className="text-gray-300">·</span>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Check className="h-4 w-4 text-[#cc1f1f]" />
+                <span>Mock Tests</span>
+              </div>
+              <span className="text-gray-300">·</span>
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Check className="h-4 w-4 text-[#cc1f1f]" />
+                <span>Review System</span>
+              </div>
             </div>
           </div>
         </div>
