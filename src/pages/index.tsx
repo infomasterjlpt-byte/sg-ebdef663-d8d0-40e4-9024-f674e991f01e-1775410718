@@ -149,38 +149,54 @@ export default function Landing() {
       />
       
       {/* Header */}
-      <header className="border-b border-border bg-card sticky top-0 z-50">
-        <div className="container flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center">
+      <header style={{ 
+        width: '100%',
+        backgroundColor: 'white',
+        borderBottom: '2px solid #cc1f1f',
+        padding: '0 24px',
+        height: '64px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        position: 'sticky',
+        top: 0,
+        zIndex: 50
+      }}>
+        <Link href="/" style={{ textDecoration: 'none' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <img 
               src="/logo.svg" 
-              alt="Master JLPT" 
-              style={{ height: '40px', width: 'auto' }}
+              alt="logo" 
+              style={{ height: '40px', maxHeight: '40px', width: 'auto' }}
             />
-          </Link>
-          <div className="flex items-center gap-3">
-            <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
-              <SelectTrigger className="w-[100px] h-9">
-                <Globe className="h-4 w-4 mr-2" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="JPY">¥ JPY</SelectItem>
-                <SelectItem value="USD">$ USD</SelectItem>
-                <SelectItem value="BDT">৳ BDT</SelectItem>
-                <SelectItem value="NPR">₨ NPR</SelectItem>
-                <SelectItem value="INR">₹ INR</SelectItem>
-                <SelectItem value="VND">₫ VND</SelectItem>
-                <SelectItem value="LKR">රු LKR</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" asChild>
-              <Link href="/auth/login">Login</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/auth/signup">Sign Up</Link>
-            </Button>
+            <span>
+              <span style={{ color: '#111', fontWeight: 800, fontSize: '20px' }}>Master</span>
+              <span style={{ color: '#cc1f1f', fontWeight: 800, fontSize: '20px' }}>JLPT</span>
+            </span>
           </div>
+        </Link>
+        <div className="flex items-center gap-3">
+          <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
+            <SelectTrigger className="w-[100px] h-9">
+              <Globe className="h-4 w-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="JPY">¥ JPY</SelectItem>
+              <SelectItem value="USD">$ USD</SelectItem>
+              <SelectItem value="BDT">৳ BDT</SelectItem>
+              <SelectItem value="NPR">₨ NPR</SelectItem>
+              <SelectItem value="INR">₹ INR</SelectItem>
+              <SelectItem value="VND">₫ VND</SelectItem>
+              <SelectItem value="LKR">රු LKR</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" className="border-2 border-gray-300" asChild>
+            <Link href="/auth/login">Login</Link>
+          </Button>
+          <Button className="bg-[#cc1f1f] hover:bg-[#b01b1b] text-white" asChild>
+            <Link href="/auth/signup">Sign Up</Link>
+          </Button>
         </div>
       </header>
 
