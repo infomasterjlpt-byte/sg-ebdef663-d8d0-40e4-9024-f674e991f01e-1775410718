@@ -583,6 +583,82 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Reviews Section */}
+      <section className="py-20 bg-white">
+        <div className="container">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Trusted by JLPT learners worldwide</h2>
+            <p className="text-gray-600 text-lg">
+              Join thousands of students who have improved their Japanese skills
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {[
+              {
+                name: "Sarah Chen",
+                level: "N3 Student",
+                review: "The structured approach helped me pass N3 on my first try. The mock tests were especially helpful for time management.",
+                rating: 5,
+              },
+              {
+                name: "David Kim",
+                level: "N2 Student",
+                review: "Best JLPT preparation platform I've used. The explanations are clear and the progress tracking keeps me motivated.",
+                rating: 5,
+              },
+              {
+                name: "Maria Santos",
+                level: "N5 Student",
+                review: "Perfect for beginners! The practice questions are well-organized and the review system helps me remember what I learned.",
+                rating: 5,
+              },
+            ].map((review, index) => (
+              <Card key={index} className="border-2">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex gap-1">
+                    {Array.from({ length: review.rating }).map((_, i) => (
+                      <Star key={i} className="h-5 w-5 fill-[#f59e0b] text-[#f59e0b]" />
+                    ))}
+                  </div>
+                  <p className="text-gray-700 leading-relaxed">"{review.review}"</p>
+                  <div>
+                    <p className="font-bold">{review.name}</p>
+                    <p className="text-sm text-gray-500">{review.level}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 bg-[#cc1f1f]">
+        <div className="container">
+          <div className="max-w-3xl mx-auto text-center space-y-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white">
+              Start your JLPT journey today.
+            </h2>
+            <p className="text-xl text-white/90">
+              Create your account and begin studying in minutes.
+            </p>
+            <div className="pt-4">
+              <Button 
+                size="lg" 
+                className="bg-white text-[#cc1f1f] hover:bg-gray-100 text-lg px-12 py-6 h-auto font-bold"
+                asChild
+              >
+                <Link href="/auth/signup">Sign Up Free</Link>
+              </Button>
+            </div>
+            <p className="text-sm text-white/80">
+              No credit card required · Cancel anytime
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="border-t border-border bg-card py-12">
         <div className="container">
