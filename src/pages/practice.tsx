@@ -1,407 +1,269 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link";
+import { AppLayout } from "@/components/Layout/AppLayout";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { ChevronRight, Check, X, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { getRandomQuestions, saveQuestionResult } from "@/services/questionService";
-import { Check, X, Lock, ChevronRight } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  getRandomQuestions,
+  saveQuestionResult,
+  addToReview,
+  updateDailyProgress,
+  type Question,
+} from "@/services/questionService";
 
-type Question = {
-  id: string;
-  level: string;
-  category: string;
-  question: string;
-  options: string[];
-  answer_index: number;
-  explanation: string;
-  example_sentence?: string;
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "#22c55e",
+  N4: "#14b8a6",
+  N3: "#8b5cf6",
+  N2: "#f59e0b",
+  N1: "#991b1b",
 };
-
-const LEVEL_COLORS = {
-  N5: "bg-green-500",
-  N4: "bg-cyan-500",
-  N3: "bg-purple-500",
-  N2: "bg-amber-500",
-  N1: "bg-red-500",
-};
-
-const GUEST_QUESTION_LIMIT = 5;
 
 export default function Practice() {
   const router = useRouter();
   const { level, category } = router.query;
 
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [isGuest, setIsGuest] = useState(false);
-  const [guestQuestionsAnswered, setGuestQuestionsAnswered] = useState(0);
-  const [guestCorrectAnswers, setGuestCorrectAnswers] = useState(0);
-  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
-
-  const [selectedLevel, setSelectedLevel] = useState<string>("");
-  const [selectedType, setSelectedType] = useState<string>("");
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [startTime, setStartTime] = useState<Date | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    loadUserAndQuestions();
+  }, [level, category]);
 
-  useEffect(() => {
-    if (level && category) {
-      setSelectedLevel(level as string);
-      setSelectedType(category as string);
-    } else if (userProfile?.target_level && !level) {
-      // Default to user's target level
-      setSelectedLevel(userProfile.target_level);
-    }
-  }, [level, category, userProfile]);
+  async function loadUserAndQuestions() {
+    setLoading(true);
 
-  useEffect(() => {
-    if (selectedLevel && selectedType) {
-      loadQuestions();
-    }
-  }, [selectedLevel, selectedType]);
-
-  async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      setIsGuest(true);
+    // Get user
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
+      router.push("/auth/login");
       return;
     }
 
-    setUser(user);
-    const { data: profile } = await supabase
+    const { data: userData } = await supabase
       .from("users")
       .select("*")
-      .eq("id", user.id)
+      .eq("id", authUser.id)
       .single();
-    
-    setUserProfile(profile);
-  }
 
-  async function loadQuestions() {
-    if (!isGuest && !userProfile?.is_premium && selectedLevel !== "N5") {
-      return;
+    setUser(userData);
+
+    // Fetch questions
+    const targetLevel = (level as string) || userData?.target_level || "N5";
+    const targetCategory = (category as string) || "kanji";
+
+    try {
+      const fetchedQuestions = await getRandomQuestions(
+        targetLevel,
+        targetCategory,
+        20
+      );
+      setQuestions(fetchedQuestions);
+    } catch (error) {
+      console.error("Error loading questions:", error);
     }
 
-    setLoading(true);
-    const questionCount = isGuest ? GUEST_QUESTION_LIMIT : 10;
-    const { data, error } = await getRandomQuestions(selectedLevel, selectedType, questionCount);
-    if (data) {
-      setQuestions(data as any[]);
-      setCurrentIndex(0);
-      setSelectedAnswer(null);
-      setShowResult(false);
-      setStartTime(new Date());
-      setGuestQuestionsAnswered(0);
-      setGuestCorrectAnswers(0);
-      setShowGuestPrompt(false);
-    }
     setLoading(false);
   }
 
+  const currentQuestion = questions[currentIndex];
+  const progress = ((currentIndex + 1) / questions.length) * 100;
+
   async function handleAnswer(answerIndex: number) {
-    if (showResult) return;
+    if (selectedAnswer !== null) return;
 
     setSelectedAnswer(answerIndex);
-    setShowResult(true);
+    setShowExplanation(true);
 
-    const question = questions[currentIndex];
-    const isCorrect = answerIndex === question.answer_index;
+    const isCorrect = answerIndex === currentQuestion.answer_index;
 
-    if (isGuest) {
-      setGuestQuestionsAnswered(prev => prev + 1);
-      if (isCorrect) {
-        setGuestCorrectAnswers(prev => prev + 1);
+    if (isCorrect) {
+      setCorrectCount(correctCount + 1);
+    }
+
+    // Save result
+    if (user) {
+      await saveQuestionResult(user.id, currentQuestion.id, isCorrect, "practice");
+
+      // Add to review if wrong
+      if (!isCorrect) {
+        await addToReview(user.id, currentQuestion.id);
       }
 
-      if (guestQuestionsAnswered + 1 >= GUEST_QUESTION_LIMIT) {
-        setTimeout(() => setShowGuestPrompt(true), 1500);
-      }
-    } else if (user) {
-      await saveQuestionResult(
-        user.id,
-        question.id,
-        isCorrect,
-        "practice"
-      );
+      // Update daily progress
+      await updateDailyProgress(user.id, 1);
     }
   }
 
   function handleNext() {
-    if (isGuest && guestQuestionsAnswered >= GUEST_QUESTION_LIMIT) {
-      setShowGuestPrompt(true);
-      return;
-    }
-
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
-      setShowResult(false);
+      setShowExplanation(false);
     } else {
-      if (isGuest) {
-        setShowGuestPrompt(true);
-      } else {
-        router.push("/dashboard");
-      }
+      router.push(
+        `/progress?score=${correctCount}&total=${questions.length}`
+      );
     }
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading questions...</p>
-      </div>
+      <AppLayout>
+        <SEO title="Practice - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-muted-foreground">Loading questions...</p>
+        </div>
+      </AppLayout>
     );
   }
 
-  if (showGuestPrompt) {
+  if (!questions.length) {
     return (
-      <>
-        <SEO title="Practice Complete - Master JLPT" />
-        <div className="min-h-screen bg-white flex items-center justify-center p-4">
-          <Card className="max-w-md w-full">
-            <CardHeader className="text-center">
-              <div className="w-16 h-16 bg-green-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                <Check className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-2xl">Great job!</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6 text-center">
-              <div>
-                <p className="text-4xl font-bold mb-2">
-                  {guestCorrectAnswers}/{GUEST_QUESTION_LIMIT}
-                </p>
-                <p className="text-muted-foreground">correct answers</p>
-              </div>
-              
-              <Alert>
-                <AlertDescription className="text-center">
-                  <strong>Create a free account</strong> to save your progress and continue studying
-                </AlertDescription>
-              </Alert>
-
-              <div className="space-y-3">
-                <Button className="w-full" size="lg" asChild>
-                  <Link href="/auth/signup">Sign Up</Link>
-                </Button>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/auth/login">Login</Link>
-                </Button>
-              </div>
-
-              <Button variant="ghost" className="w-full" onClick={() => router.push("/levels")}>
-                Try another level
+      <AppLayout>
+        <SEO title="Practice - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8 text-center space-y-4">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-bold">No questions available</h2>
+              <p className="text-muted-foreground">
+                There are no questions for this level and category yet.
+              </p>
+              <Button onClick={() => router.push("/dashboard")}>
+                Back to Dashboard
               </Button>
             </CardContent>
           </Card>
         </div>
-      </>
+      </AppLayout>
     );
   }
 
-  if (questions.length === 0) {
-    return (
-      <>
-        <SEO title="Practice Mode - Master JLPT" />
-        <div className="min-h-screen bg-white p-4">
-          <div className="container max-w-4xl mx-auto py-8">
-            <div className="mb-6">
-              <Button variant="ghost" asChild>
-                <Link href={isGuest ? "/levels" : "/dashboard"}>
-                  ← Back
-                </Link>
-              </Button>
-            </div>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Select Practice Options</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Level</label>
-                  <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="N5">N5 - Beginner</SelectItem>
-                      <SelectItem value="N4">N4 - Elementary</SelectItem>
-                      <SelectItem value="N3">N3 - Intermediate</SelectItem>
-                      <SelectItem value="N2">N2 - Upper Intermediate</SelectItem>
-                      <SelectItem value="N1">N1 - Advanced</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {userProfile?.target_level && selectedLevel !== userProfile.target_level && (
-                    <p className="text-xs text-muted-foreground">
-                      Your main level is {userProfile.target_level}. You can practice other levels here.
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Category</label>
-                  <Select value={selectedType} onValueChange={setSelectedType}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Choose category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="kanji">Kanji</SelectItem>
-                      <SelectItem value="grammar">Grammar</SelectItem>
-                      <SelectItem value="reading">Reading</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {!isGuest && !userProfile?.is_premium && selectedLevel !== "N5" && (
-                  <Alert>
-                    <Lock className="h-4 w-4" />
-                    <AlertDescription>
-                      Upgrade to Premium to access {selectedLevel} questions.
-                      <Link href="/pricing" className="text-primary font-medium ml-1">
-                        View Plans
-                      </Link>
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {isGuest && (
-                  <Alert className="bg-blue-50 border-blue-200">
-                    <AlertDescription className="text-blue-900">
-                      Try <strong>{GUEST_QUESTION_LIMIT} free questions</strong> — no account needed
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  const question = questions[currentIndex];
-  const isCorrect = showResult && selectedAnswer === question?.answer_index;
-  const canAccessLevel = isGuest || userProfile?.is_premium || selectedLevel === "N5";
-  const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
+  const levelColor = LEVEL_COLORS[currentQuestion.level] || "#22c55e";
+  const options = Array.isArray(currentQuestion.options)
+    ? currentQuestion.options
+    : [];
 
   return (
-    <>
-      <SEO title="Practice Mode - Master JLPT" />
-      <div className="min-h-screen bg-white">
-        <div className="border-b border-gray-200 bg-white sticky top-0 z-50">
-          <div className="container py-4">
-            <div className="flex items-center justify-between mb-2">
-              <Button variant="ghost" onClick={() => router.push(isGuest ? "/levels" : "/dashboard")}>
-                ← Back
-              </Button>
-              <div className="text-sm text-gray-600">
-                {isGuest ? `${guestQuestionsAnswered}/${GUEST_QUESTION_LIMIT}` : `${currentIndex + 1}/${questions.length}`}
-              </div>
+    <AppLayout>
+      <SEO title={`Practice ${currentQuestion.level} ${currentQuestion.category} - Master JLPT`} />
+      
+      <div className="container py-8 max-w-3xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Badge style={{ backgroundColor: levelColor }} className="text-white">
+                {currentQuestion.level}
+              </Badge>
+              <span className="text-muted-foreground capitalize">
+                {currentQuestion.category}
+              </span>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+            <span className="text-sm font-medium">
+              {currentIndex + 1} / {questions.length}
+            </span>
           </div>
+          <Progress value={progress} className="h-2" />
         </div>
 
-        <div className="container max-w-4xl mx-auto py-8 px-4">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Badge className={`${LEVEL_COLORS[question.level as keyof typeof LEVEL_COLORS]} text-white`}>
-                  {question.level} - Question {currentIndex + 1}/{questions.length}
-                </Badge>
-                <Badge variant="outline">{question.category}</Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <h3 className="text-xl font-bold mb-4">{question.question}</h3>
-              </div>
+        {/* Question Card */}
+        <Card>
+          <CardContent className="p-8 space-y-6">
+            <h2 className="text-2xl font-bold leading-relaxed">
+              {currentQuestion.question}
+            </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {question.options.map((option, index) => {
-                  const isSelected = selectedAnswer === index;
-                  const isCorrectOption = index === question.answer_index;
-                  const showCorrect = showResult && isCorrectOption;
-                  const showWrong = showResult && isSelected && !isCorrect;
-
-                  return (
-                    <button
-                      key={index}
-                      onClick={() => handleAnswer(index)}
-                      disabled={showResult}
-                      className={`p-4 rounded-lg border-2 text-left transition-all ${
-                        showCorrect
-                          ? "border-green-500 bg-green-50"
-                          : showWrong
-                          ? "border-red-500 bg-red-50"
-                          : isSelected
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200 hover:border-gray-300"
-                      } ${showResult ? "cursor-default" : "cursor-pointer"}`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{option}</span>
-                        {showCorrect && <Check className="h-5 w-5 text-green-600" />}
-                        {showWrong && <X className="h-5 w-5 text-red-600" />}
-                      </div>
-                    </button>
-                  );
-                })}
+            {currentQuestion.example_sentence && (
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Example:</p>
+                <p className="font-medium">{currentQuestion.example_sentence}</p>
               </div>
+            )}
 
-              {showResult && (
-                <div className={`p-4 rounded-lg ${isCorrect ? "bg-green-50 border border-green-200" : "bg-red-50 border border-red-200"}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    {isCorrect ? (
-                      <Check className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <X className="h-5 w-5 text-red-600" />
-                    )}
-                    <span className="font-semibold">
-                      {isCorrect ? "Correct!" : "Incorrect"}
-                    </span>
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Correct Answer: </span>
-                    {question.options[question.answer_index]}
-                  </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Explanation: </span>
-                    {question.explanation}
-                  </div>
-                  {question.example_sentence && (
-                    <div className="text-sm mt-2">
-                      <span className="font-medium">Example: </span>
-                      {question.example_sentence}
+            {/* Answer Options */}
+            <div className="space-y-3">
+              {options.map((option: string, index: number) => {
+                const isSelected = selectedAnswer === index;
+                const isCorrect = index === currentQuestion.answer_index;
+                const showCorrect = showExplanation && isCorrect;
+                const showWrong = showExplanation && isSelected && !isCorrect;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                      showCorrect
+                        ? "border-green-500 bg-green-50"
+                        : showWrong
+                        ? "border-red-500 bg-red-50"
+                        : isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    } ${selectedAnswer !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{option}</span>
+                      {showCorrect && <Check className="h-5 w-5 text-green-600" />}
+                      {showWrong && <X className="h-5 w-5 text-red-600" />}
                     </div>
-                  )}
-                </div>
-              )}
+                  </button>
+                );
+              })}
+            </div>
 
-              {showResult && (
-                <Button onClick={handleNext} className="w-full" size="lg">
-                  {currentIndex < questions.length - 1 ? "Next Question" : "Finish"}
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              )}
-            </CardContent>
-          </Card>
+            {/* Explanation */}
+            {showExplanation && currentQuestion.explanation && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900 mb-2">
+                  Explanation:
+                </p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {currentQuestion.explanation}
+                </p>
+              </div>
+            )}
+
+            {/* Next Button */}
+            {showExplanation && (
+              <Button
+                onClick={handleNext}
+                className="w-full"
+                size="lg"
+              >
+                {currentIndex < questions.length - 1 ? (
+                  <>
+                    Next Question <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  "View Results"
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Score Tracker */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Score: <span className="font-bold text-foreground">{correctCount}</span> /{" "}
+            {currentIndex + (selectedAnswer !== null ? 1 : 0)}
+          </p>
         </div>
       </div>
-    </>
+    </AppLayout>
   );
 }

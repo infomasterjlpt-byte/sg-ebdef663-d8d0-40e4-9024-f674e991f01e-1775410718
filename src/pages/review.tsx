@@ -1,321 +1,249 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
+import { ChevronRight, Check, X, RefreshCw, BookOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, ChevronRight, BookOpen } from "lucide-react";
+import {
+  getReviewQuestions,
+  updateReviewItem,
+  saveQuestionResult,
+  type Question,
+} from "@/services/questionService";
 
-type ReviewQuestion = {
-  id: string;
-  level: string;
-  type: string;
-  question: string;
-  options: string[];
-  answer: number;
-  explanation: string;
-  example_sentence?: string;
-  status: string;
-  correct_streak: number;
-};
-
-const STATUS_COLORS = {
-  learning: "bg-yellow-500",
-  hard: "bg-red-500",
-  mastered: "bg-green-600",
-};
-
-const LEVEL_COLORS = {
-  N5: "bg-green-500",
-  N4: "bg-cyan-500",
-  N3: "bg-purple-500",
-  N2: "bg-amber-500",
-  N1: "bg-red-500",
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "#22c55e",
+  N4: "#14b8a6",
+  N3: "#8b5cf6",
+  N2: "#f59e0b",
+  N1: "#991b1b",
 };
 
 export default function Review() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [questions, setQuestions] = useState<ReviewQuestion[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [correctCount, setCorrectCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    loadUserAndReviewQuestions();
   }, []);
 
-  async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+  async function loadUserAndReviewQuestions() {
+    setLoading(true);
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
       router.push("/auth/login");
       return;
     }
-    setUser(user);
 
-    const { data: profile } = await supabase
+    const { data: userData } = await supabase
       .from("users")
       .select("*")
-      .eq("id", user.id)
+      .eq("id", authUser.id)
       .single();
 
-    setUserProfile(profile);
-    if (profile?.target_level) {
-      loadReviewQuestions(user.id, profile.target_level);
-    }
-  }
+    setUser(userData);
 
-  async function loadReviewQuestions(userId: string, targetLevel: string) {
-    setLoading(true);
-    
-    const { data, error } = await supabase
-      .from("review_items")
-      .select(`
-        id,
-        status,
-        correct_streak,
-        question_id,
-        questions!inner (
-          id,
-          level,
-          type,
-          question,
-          options,
-          answer,
-          explanation,
-          example_sentence
-        )
-      `)
-      .eq("user_id", userId)
-      .eq("questions.level", targetLevel)
-      .neq("status", "mastered")
-      .order("last_reviewed_at", { ascending: true })
-      .limit(20);
-
-    if (data) {
-      const formatted = data.map(item => {
-        const q = Array.isArray(item.questions) ? item.questions[0] : item.questions;
-        return {
-          ...(q as any),
-          status: item.status,
-          correct_streak: item.correct_streak,
-        };
-      }) as ReviewQuestion[];
-      setQuestions(formatted);
+    // Fetch review questions
+    try {
+      const reviewQuestions = await getReviewQuestions(authUser.id, 20);
+      setQuestions(reviewQuestions);
+    } catch (error) {
+      console.error("Error loading review questions:", error);
     }
-    
+
     setLoading(false);
   }
 
+  const currentQuestion = questions[currentIndex];
+  const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
+
   async function handleAnswer(answerIndex: number) {
-    if (showResult || !user) return;
+    if (selectedAnswer !== null) return;
 
     setSelectedAnswer(answerIndex);
-    setShowResult(true);
+    setShowExplanation(true);
 
-    const question = questions[currentIndex];
-    const isCorrect = answerIndex === question.answer;
+    const isCorrect = answerIndex === currentQuestion.answer_index;
 
-    await supabase
-      .from("results")
-      .insert({
-        user_id: user.id,
-        question_id: question.id,
-        correct: isCorrect,
-        mode: "review",
-      });
+    if (isCorrect) {
+      setCorrectCount(correctCount + 1);
+    }
 
-    const newStreak = isCorrect ? question.correct_streak + 1 : 0;
-    let newStatus = "learning";
-    
-    if (newStreak === 1) newStatus = "hard";
-    if (newStreak >= 2) newStatus = "mastered";
-
-    await supabase
-      .from("review_items")
-      .update({
-        correct_streak: newStreak,
-        status: newStatus,
-        last_reviewed_at: new Date().toISOString(),
-      })
-      .eq("user_id", user.id)
-      .eq("question_id", question.id);
+    // Save result
+    if (user) {
+      await saveQuestionResult(user.id, currentQuestion.id, isCorrect, "review");
+      await updateReviewItem(user.id, currentQuestion.id, isCorrect);
+    }
   }
 
   function handleNext() {
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
-      setShowResult(false);
+      setShowExplanation(false);
     } else {
-      if (userProfile?.target_level) {
-        loadReviewQuestions(user.id, userProfile.target_level);
-      }
-      setCurrentIndex(0);
-      setSelectedAnswer(null);
-      setShowResult(false);
+      router.push(`/progress?score=${correctCount}&total=${questions.length}&mode=review`);
     }
   }
 
-  const question = questions[currentIndex];
-  const isCorrect = showResult && selectedAnswer === question?.answer;
-
   if (loading) {
     return (
-      <>
-        <SEO title="Review - Master JLPT" description="Review weak questions" />
-        <AppLayout>
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <p className="text-muted-foreground">Loading review questions...</p>
-          </div>
-        </AppLayout>
-      </>
-    );
-  }
-
-  if (questions.length === 0) {
-    return (
-      <>
-        <SEO title="Review - Master JLPT" description="Review weak questions" />
-        <AppLayout>
-          <div className="max-w-4xl mx-auto">
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-bold mb-2">No {userProfile?.target_level} Questions to Review</h2>
-                <p className="text-muted-foreground text-center mb-6">
-                  You haven't answered any {userProfile?.target_level} questions incorrectly yet.<br />
-                  Start practicing to build your review queue.
-                </p>
-                <Button onClick={() => router.push("/practice")}>
-                  Go to Practice
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </AppLayout>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <SEO title="Review - Master JLPT" description="Review weak questions" />
       <AppLayout>
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Review Mode ({userProfile?.target_level})</h1>
-            <p className="text-muted-foreground">
-              Review questions you got wrong to master them
-            </p>
-          </div>
-
-          <div className="space-y-4">
-            <div className="bg-accent h-1.5 rounded-full overflow-hidden">
-              <div
-                className="h-full bg-accent transition-all duration-300"
-                style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-              />
-            </div>
-
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge className={`${LEVEL_COLORS[question.level as keyof typeof LEVEL_COLORS]} text-white`}>
-                    {question.level} - Question {currentIndex + 1}/{questions.length}
-                  </Badge>
-                  <Badge className={`${STATUS_COLORS[question.status as keyof typeof STATUS_COLORS]} text-white`}>
-                    {question.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-lg font-medium">{question.question}</div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {question.options.map((option, index) => {
-                    const isSelected = selectedAnswer === index;
-                    const isCorrectOption = index === question.answer;
-                    const showCorrect = showResult && isCorrectOption;
-                    const showWrong = showResult && isSelected && !isCorrect;
-
-                    return (
-                      <Button
-                        key={index}
-                        variant={showCorrect ? "default" : showWrong ? "destructive" : isSelected ? "secondary" : "outline"}
-                        className={`h-auto py-4 justify-start text-left ${
-                          showCorrect ? "bg-green-600 hover:bg-green-700" : ""
-                        }`}
-                        onClick={() => handleAnswer(index)}
-                        disabled={showResult}
-                      >
-                        <div className="flex items-center gap-3 w-full">
-                          <span className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0">
-                            {showCorrect && <Check className="h-4 w-4" />}
-                            {showWrong && <X className="h-4 w-4" />}
-                            {!showResult && String.fromCharCode(65 + index)}
-                          </span>
-                          <span className="flex-1">{option}</span>
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                {showResult && (
-                  <div className="border-l-4 border-accent bg-surface p-4 rounded space-y-2">
-                    <div className="font-semibold flex items-center gap-2">
-                      {isCorrect ? (
-                        <>
-                          <Check className="h-5 w-5 text-green-600" />
-                          <span className="text-green-600">
-                            {question.correct_streak + 1 >= 2 ? "Mastered!" : "Correct!"}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <X className="h-5 w-5 text-destructive" />
-                          <span className="text-destructive">Incorrect - Review Again</span>
-                        </>
-                      )}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Correct Answer: </span>
-                      {question.options[question.answer]}
-                    </div>
-                    <div className="text-sm">
-                      <span className="font-medium">Explanation: </span>
-                      {question.explanation}
-                    </div>
-                    {question.example_sentence && (
-                      <div className="text-sm">
-                        <span className="font-medium">Example: </span>
-                        {question.example_sentence}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {showResult && (
-                  <Button onClick={handleNext} className="w-full">
-                    {currentIndex < questions.length - 1 ? (
-                      <>
-                        Next Question <ChevronRight className="ml-2 h-4 w-4" />
-                      </>
-                    ) : (
-                      "Load More Questions"
-                    )}
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          </div>
+        <SEO title="Review - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-muted-foreground">Loading review questions...</p>
         </div>
       </AppLayout>
-    </>
+    );
+  }
+
+  if (!questions.length) {
+    return (
+      <AppLayout>
+        <SEO title="Review - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8 text-center space-y-4">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-bold">No items to review</h2>
+              <p className="text-muted-foreground">
+                You haven't added any questions to review yet. Questions you answer incorrectly will appear here.
+              </p>
+              <Button onClick={() => router.push("/practice")}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Start Practicing
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const levelColor = LEVEL_COLORS[currentQuestion.level] || "#22c55e";
+  const options = Array.isArray(currentQuestion.options)
+    ? currentQuestion.options
+    : [];
+
+  return (
+    <AppLayout>
+      <SEO title="Review - Master JLPT" />
+      
+      <div className="container py-8 max-w-3xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Badge style={{ backgroundColor: levelColor }} className="text-white">
+                {currentQuestion.level}
+              </Badge>
+              <span className="text-muted-foreground capitalize">
+                {currentQuestion.category}
+              </span>
+              <Badge variant="outline" className="border-orange-500 text-orange-700">
+                Review
+              </Badge>
+            </div>
+            <span className="text-sm font-medium">
+              {currentIndex + 1} / {questions.length}
+            </span>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        {/* Question Card */}
+        <Card>
+          <CardContent className="p-8 space-y-6">
+            <h2 className="text-2xl font-bold leading-relaxed">
+              {currentQuestion.question}
+            </h2>
+
+            {currentQuestion.example_sentence && (
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Example:</p>
+                <p className="font-medium">{currentQuestion.example_sentence}</p>
+              </div>
+            )}
+
+            {/* Answer Options */}
+            <div className="space-y-3">
+              {options.map((option: string, index: number) => {
+                const isSelected = selectedAnswer === index;
+                const isCorrect = index === currentQuestion.answer_index;
+                const showCorrect = showExplanation && isCorrect;
+                const showWrong = showExplanation && isSelected && !isCorrect;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                      showCorrect
+                        ? "border-green-500 bg-green-50"
+                        : showWrong
+                        ? "border-red-500 bg-red-50"
+                        : isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    } ${selectedAnswer !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{option}</span>
+                      {showCorrect && <Check className="h-5 w-5 text-green-600" />}
+                      {showWrong && <X className="h-5 w-5 text-red-600" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Explanation */}
+            {showExplanation && currentQuestion.explanation && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900 mb-2">
+                  Explanation:
+                </p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {currentQuestion.explanation}
+                </p>
+              </div>
+            )}
+
+            {/* Next Button */}
+            {showExplanation && (
+              <Button onClick={handleNext} className="w-full" size="lg">
+                {currentIndex < questions.length - 1 ? (
+                  <>
+                    Next Question <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  "View Results"
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Score Tracker */}
+        <div className="mt-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            Score: <span className="font-bold text-foreground">{correctCount}</span> /{" "}
+            {currentIndex + (selectedAnswer !== null ? 1 : 0)}
+          </p>
+        </div>
+      </div>
+    </AppLayout>
   );
 }

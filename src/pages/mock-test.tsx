@@ -1,471 +1,351 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { getRandomQuestions } from "@/services/questionService";
-import { Check, X, Lock, Clock, ChevronRight, Trophy } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Clock, ChevronRight, Check, X, BookOpen } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import {
+  getMockTestQuestions,
+  saveQuestionResult,
+  saveMockTestResult,
+  type Question,
+} from "@/services/questionService";
 
-type Question = {
-  id: string;
-  level: string;
-  category: string;
-  question: string;
-  options: string[];
-  answer_index: number;
-  explanation: string;
-  example_sentence?: string;
-};
-
-type TestSection = {
-  name: string;
-  category: string;
-  timeLimit: number;
-  questionCount: number;
-};
-
-const LEVEL_COLORS = {
-  N5: "bg-green-500",
-  N4: "bg-cyan-500",
-  N3: "bg-purple-500",
-  N2: "bg-amber-500",
-  N1: "bg-red-500",
-};
-
-const TEST_SECTIONS: { [key: string]: TestSection[] } = {
-  N5: [
-    { name: "Vocabulary", category: "vocabulary", timeLimit: 25 * 60, questionCount: 20 },
-    { name: "Grammar & Reading", category: "grammar", timeLimit: 50 * 60, questionCount: 30 },
-  ],
-  N4: [
-    { name: "Vocabulary", category: "vocabulary", timeLimit: 25 * 60, questionCount: 25 },
-    { name: "Grammar & Reading", category: "grammar", timeLimit: 50 * 60, questionCount: 35 },
-  ],
-  N3: [
-    { name: "Vocabulary", category: "vocabulary", timeLimit: 30 * 60, questionCount: 30 },
-    { name: "Grammar & Reading", category: "grammar", timeLimit: 70 * 60, questionCount: 40 },
-  ],
-  N2: [
-    { name: "Vocabulary", category: "vocabulary", timeLimit: 35 * 60, questionCount: 35 },
-    { name: "Grammar & Reading", category: "grammar", timeLimit: 105 * 60, questionCount: 45 },
-  ],
-  N1: [
-    { name: "Vocabulary", category: "vocabulary", timeLimit: 35 * 60, questionCount: 40 },
-    { name: "Grammar & Reading", category: "grammar", timeLimit: 110 * 60, questionCount: 50 },
-  ],
+const LEVEL_COLORS: { [key: string]: string } = {
+  N5: "#22c55e",
+  N4: "#14b8a6",
+  N3: "#8b5cf6",
+  N2: "#f59e0b",
+  N1: "#991b1b",
 };
 
 export default function MockTest() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
-  const [selectedLevel, setSelectedLevel] = useState("");
-  const [testState, setTestState] = useState<"setup" | "active" | "results">("setup");
-  const [currentSection, setCurrentSection] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<{ [key: number]: number }>({});
-  const [timeRemaining, setTimeRemaining] = useState(0);
-  const [loading, setLoading] = useState(false);
-  const [startTime, setStartTime] = useState<Date | null>(null);
-  const [showResults, setShowResults] = useState(false);
-  const [testResults, setTestResults] = useState<any>(null);
+  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
+  const [timeLeft, setTimeLeft] = useState(3600); // 60 minutes
+  const [isStarted, setIsStarted] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [startTime, setStartTime] = useState<number>(0);
 
   useEffect(() => {
-    checkAuth();
+    loadUserAndQuestions();
   }, []);
 
   useEffect(() => {
-    // Default to user's target level
-    if (userProfile?.target_level && !selectedLevel) {
-      setSelectedLevel(userProfile.target_level);
-    }
-  }, [userProfile]);
-
-  useEffect(() => {
-    if (testState === "active" && timeRemaining > 0) {
+    if (isStarted && timeLeft > 0) {
       const timer = setInterval(() => {
-        setTimeRemaining(prev => {
-          if (prev <= 1) {
-            handleSectionComplete();
-            return 0;
-          }
-          return prev - 1;
-        });
+        setTimeLeft((prev) => prev - 1);
       }, 1000);
       return () => clearInterval(timer);
     }
-  }, [testState, timeRemaining]);
+  }, [isStarted, timeLeft]);
 
-  async function checkAuth() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
+  async function loadUserAndQuestions() {
+    setLoading(true);
+
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    if (!authUser) {
       router.push("/auth/login");
       return;
     }
-    setUser(user);
 
-    const { data: profile } = await supabase
+    const { data: userData } = await supabase
       .from("users")
       .select("*")
-      .eq("id", user.id)
+      .eq("id", authUser.id)
       .single();
 
-    setUserProfile(profile);
-  }
+    setUser(userData);
 
-  async function startTest() {
-    if (!selectedLevel || (!userProfile?.is_premium && selectedLevel !== "N5")) return;
-
-    setLoading(true);
-    const sections = TEST_SECTIONS[selectedLevel];
-    const section = sections[0];
-
-    const { data } = await getRandomQuestions(selectedLevel, section.category, section.questionCount);
-    if (data) {
-      setQuestions(data as any[]);
-      setCurrentIndex(0);
-      setAnswers({});
-      setTimeRemaining(section.timeLimit);
-      setStartTime(new Date());
-      setTestState("active");
-      setCurrentSection(0);
+    // Fetch mock test questions (60 total: 35% kanji, 35% grammar, 30% reading)
+    try {
+      const fetchedQuestions = await getMockTestQuestions(
+        userData?.target_level || "N5",
+        60
+      );
+      setQuestions(fetchedQuestions);
+      setAnswers(new Array(fetchedQuestions.length).fill(null));
+    } catch (error) {
+      console.error("Error loading questions:", error);
     }
+
     setLoading(false);
   }
 
-  async function handleSectionComplete() {
-    const sections = TEST_SECTIONS[selectedLevel];
-    
-    if (currentSection < sections.length - 1) {
-      const nextSection = sections[currentSection + 1];
-      setLoading(true);
-      const { data } = await getRandomQuestions(selectedLevel, nextSection.category, nextSection.questionCount);
-      if (data) {
-        setQuestions(data as any[]);
-        setCurrentIndex(0);
-        setTimeRemaining(nextSection.timeLimit);
-        setCurrentSection(currentSection + 1);
-      }
-      setLoading(false);
-    } else {
-      await calculateResults();
+  function startTest() {
+    setIsStarted(true);
+    setStartTime(Date.now());
+  }
+
+  const currentQuestion = questions[currentIndex];
+  const progress = ((currentIndex + 1) / questions.length) * 100;
+
+  async function handleAnswer(answerIndex: number) {
+    if (selectedAnswer !== null) return;
+
+    setSelectedAnswer(answerIndex);
+    setShowExplanation(true);
+
+    const newAnswers = [...answers];
+    newAnswers[currentIndex] = answerIndex;
+    setAnswers(newAnswers);
+
+    // Save result
+    if (user && currentQuestion) {
+      const isCorrect = answerIndex === currentQuestion.answer_index;
+      await saveQuestionResult(user.id, currentQuestion.id, isCorrect, "mock_test");
     }
   }
 
-  async function calculateResults() {
-    const allQuestions = questions;
-    let correct = 0;
-    let vocabCorrect = 0;
-    let grammarCorrect = 0;
-    let vocabTotal = 0;
-    let grammarTotal = 0;
+  async function handleNext() {
+    if (currentIndex < questions.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      setSelectedAnswer(answers[currentIndex + 1]);
+      setShowExplanation(answers[currentIndex + 1] !== null);
+    } else {
+      await finishTest();
+    }
+  }
 
-    allQuestions.forEach((q, index) => {
-      const userAnswer = answers[index];
-      const isCorrect = userAnswer === q.answer_index;
-      
-      if (isCorrect) correct++;
-      
-      if (q.category === "vocabulary") {
-        vocabTotal++;
-        if (isCorrect) vocabCorrect++;
-      } else {
-        grammarTotal++;
-        if (isCorrect) grammarCorrect++;
+  async function finishTest() {
+    if (!user) return;
+
+    const correctCount = answers.filter(
+      (answer, idx) => answer === questions[idx].answer_index
+    ).length;
+
+    const timeTaken = Math.floor((Date.now() - startTime) / 1000);
+
+    // Calculate section scores
+    const sections = {
+      kanji: { correct: 0, total: 0 },
+      grammar: { correct: 0, total: 0 },
+      reading: { correct: 0, total: 0 },
+    };
+
+    questions.forEach((q, idx) => {
+      const category = q.category as "kanji" | "grammar" | "reading";
+      if (sections[category]) {
+        sections[category].total++;
+        if (answers[idx] === q.answer_index) {
+          sections[category].correct++;
+        }
       }
-
-      supabase.from("results").insert({
-        user_id: user.id,
-        question_id: q.id,
-        correct: isCorrect,
-        mode: "mock_test",
-      });
     });
 
-    const totalQuestions = allQuestions.length;
-    const score = Math.round((correct / totalQuestions) * 100);
-    const passed = score >= 60;
-    const timeTaken = startTime ? Math.floor((Date.now() - startTime.getTime()) / 1000) : 0;
-
-    await supabase.from("mock_tests").insert({
-      user_id: user.id,
-      level: selectedLevel,
-      score,
-      total_questions: totalQuestions,
-      time_taken: timeTaken,
-    });
-
-    setTestResults({
-      score,
-      correct,
-      totalQuestions,
-      passed,
-      vocabScore: vocabTotal > 0 ? Math.round((vocabCorrect / vocabTotal) * 100) : 0,
-      grammarScore: grammarTotal > 0 ? Math.round((grammarCorrect / grammarTotal) * 100) : 0,
-    });
-
-    setTestState("results");
-    setShowResults(true);
-  }
-
-  function handleAnswer(questionIndex: number, answerIndex: number) {
-    setAnswers(prev => ({ ...prev, [questionIndex]: answerIndex }));
-  }
-
-  function formatTime(seconds: number) {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  }
-
-  const canAccessLevel = userProfile?.is_premium || selectedLevel === "N5";
-  const currentQuestion = questions[currentIndex];
-  const sections = selectedLevel ? TEST_SECTIONS[selectedLevel] : [];
-  const currentSectionInfo = sections[currentSection];
-
-  if (testState === "results" && testResults) {
-    return (
-      <>
-        <SEO title="Mock Test Results - Master JLPT" description="Your mock test results" />
-        <AppLayout>
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-2xl">Test Results</CardTitle>
-                  <Badge className={`${LEVEL_COLORS[selectedLevel as keyof typeof LEVEL_COLORS]} text-white`}>
-                    {selectedLevel}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="text-center py-8">
-                  <div className="flex items-center justify-center mb-4">
-                    {testResults.passed ? (
-                      <Trophy className="h-16 w-16 text-accent" />
-                    ) : (
-                      <X className="h-16 w-16 text-destructive" />
-                    )}
-                  </div>
-                  <h2 className="text-4xl font-bold mb-2">{testResults.score}%</h2>
-                  <p className="text-lg text-muted-foreground">
-                    {testResults.correct} / {testResults.totalQuestions} correct
-                  </p>
-                  <Badge variant={testResults.passed ? "default" : "destructive"} className="mt-4">
-                    {testResults.passed ? "PASSED" : "FAILED"}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Vocabulary Section</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-accent">{testResults.vocabScore}%</p>
-                    </CardContent>
-                  </Card>
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-lg">Grammar & Reading</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-3xl font-bold text-accent">{testResults.grammarScore}%</p>
-                    </CardContent>
-                  </Card>
-                </div>
-
-                <div className="flex gap-3">
-                  <Button onClick={() => router.push("/practice")} variant="outline" className="flex-1">
-                    Practice More
-                  </Button>
-                  <Button onClick={() => {
-                    setTestState("setup");
-                    setShowResults(false);
-                    setTestResults(null);
-                    setQuestions([]);
-                    setAnswers({});
-                  }} className="flex-1">
-                    Take Another Test
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </AppLayout>
-      </>
+    await saveMockTestResult(
+      user.id,
+      user.target_level,
+      correctCount,
+      questions.length,
+      timeTaken,
+      sections
     );
+
+    router.push(`/progress?score=${correctCount}&total=${questions.length}&mode=mock`);
   }
 
-  if (testState === "active" && currentQuestion) {
+  if (loading) {
     return (
-      <>
-        <SEO title="Mock Test - Master JLPT" description="JLPT mock examination" />
-        <AppLayout>
-          <div className="max-w-4xl mx-auto space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <Badge className={`${LEVEL_COLORS[selectedLevel as keyof typeof LEVEL_COLORS]} text-white`}>
-                    {selectedLevel} - {currentSectionInfo.name}
-                  </Badge>
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-accent" />
-                    <span className={`font-mono font-bold ${timeRemaining < 60 ? "text-destructive" : "text-accent"}`}>
-                      {formatTime(timeRemaining)}
-                    </span>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="bg-accent h-1.5 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-accent transition-all duration-300"
-                    style={{ width: `${((currentIndex + 1) / questions.length) * 100}%` }}
-                  />
-                </div>
-
-                <div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Question {currentIndex + 1} of {questions.length}
-                  </p>
-                  <h2 className="text-lg font-medium">{currentQuestion.question}</h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {currentQuestion.options.map((option, index) => {
-                    const isSelected = answers[currentIndex] === index;
-                    return (
-                      <Button
-                        key={index}
-                        variant={isSelected ? "default" : "outline"}
-                        className="h-auto py-4 justify-start text-left"
-                        onClick={() => handleAnswer(currentIndex, index)}
-                      >
-                        <div className="flex items-center gap-3 w-full">
-                          <span className="w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0">
-                            {isSelected ? "✓" : String.fromCharCode(65 + index)}
-                          </span>
-                          <span className="flex-1">{option}</span>
-                        </div>
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <div className="flex gap-3">
-                  <Button
-                    variant="outline"
-                    onClick={() => setCurrentIndex(Math.max(0, currentIndex - 1))}
-                    disabled={currentIndex === 0}
-                    className="flex-1"
-                  >
-                    Previous
-                  </Button>
-                  {currentIndex < questions.length - 1 ? (
-                    <Button onClick={() => setCurrentIndex(currentIndex + 1)} className="flex-1">
-                      Next Question <ChevronRight className="ml-2 h-4 w-4" />
-                    </Button>
-                  ) : (
-                    <Button onClick={handleSectionComplete} className="flex-1">
-                      {currentSection < sections.length - 1 ? "Next Section" : "Finish Test"}
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </AppLayout>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <SEO title="Mock Test - Master JLPT" description="Full JLPT mock examination" />
       <AppLayout>
-        <div className="max-w-4xl mx-auto space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold mb-2">Mock Test</h1>
-            <p className="text-muted-foreground">
-              Full timed JLPT-style examination
-            </p>
-          </div>
+        <SEO title="Mock Test - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <p className="text-muted-foreground">Loading mock test...</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
-          {!userProfile?.is_premium && (
-            <Alert>
-              <AlertDescription>
-                Mock tests are premium only (except N5).{" "}
-                <Button variant="link" className="h-auto p-0 text-accent" onClick={() => router.push("/pricing")}>
-                  Upgrade to Premium
-                </Button>{" "}
-                to unlock all levels.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Select Test Level</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Level</label>
-                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {["N5", "N4", "N3", "N2", "N1"].map((level) => {
-                      const locked = !userProfile?.is_premium && level !== "N5";
-                      return (
-                        <SelectItem key={level} value={level} disabled={locked}>
-                          <div className="flex items-center gap-2">
-                            <span>{level}</span>
-                            {locked && <Lock className="h-3 w-3 opacity-35" />}
-                            {level === userProfile?.target_level && <Badge variant="outline" className="text-xs ml-1">Your Level</Badge>}
-                          </div>
-                        </SelectItem>
-                      );
-                    })}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {selectedLevel && (
-                <div className="border border-border rounded-lg p-4 space-y-3">
-                  <h3 className="font-semibold">Test Structure</h3>
-                  {TEST_SECTIONS[selectedLevel].map((section, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-border last:border-0">
-                      <div>
-                        <p className="font-medium">{section.name}</p>
-                        <p className="text-sm text-muted-foreground">{section.questionCount} questions</p>
-                      </div>
-                      <Badge variant="outline">
-                        {Math.floor(section.timeLimit / 60)} min
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <Button
-                onClick={startTest}
-                disabled={!selectedLevel || loading || !canAccessLevel}
-                className="w-full"
-              >
-                {loading ? "Starting Test..." : "Start Mock Test"}
+  if (!questions.length) {
+    return (
+      <AppLayout>
+        <SEO title="Mock Test - Master JLPT" />
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="max-w-md">
+            <CardContent className="p-8 text-center space-y-4">
+              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
+              <h2 className="text-xl font-bold">No questions available</h2>
+              <p className="text-muted-foreground">
+                There are no questions for mock tests yet.
+              </p>
+              <Button onClick={() => router.push("/dashboard")}>
+                Back to Dashboard
               </Button>
             </CardContent>
           </Card>
         </div>
       </AppLayout>
-    </>
+    );
+  }
+
+  if (!isStarted) {
+    return (
+      <AppLayout>
+        <SEO title="Mock Test - Master JLPT" />
+        <div className="container py-16 max-w-2xl">
+          <Card>
+            <CardContent className="p-8 space-y-6">
+              <div className="text-center space-y-4">
+                <Badge
+                  style={{ backgroundColor: LEVEL_COLORS[user?.target_level] }}
+                  className="text-white text-lg px-4 py-2"
+                >
+                  {user?.target_level} Mock Test
+                </Badge>
+                <h1 className="text-3xl font-bold">Ready to start?</h1>
+                <p className="text-muted-foreground">
+                  This mock test contains {questions.length} questions and takes 60 minutes.
+                </p>
+              </div>
+
+              <Alert>
+                <Clock className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Test Structure:</strong>
+                  <ul className="mt-2 space-y-1 text-sm">
+                    <li>• Kanji: {questions.filter((q) => q.category === "kanji").length} questions (35%)</li>
+                    <li>• Grammar: {questions.filter((q) => q.category === "grammar").length} questions (35%)</li>
+                    <li>• Reading: {questions.filter((q) => q.category === "reading").length} questions (30%)</li>
+                  </ul>
+                </AlertDescription>
+              </Alert>
+
+              <div className="space-y-3 text-sm text-muted-foreground">
+                <p>• Answer all questions to the best of your ability</p>
+                <p>• You can review and change answers before submitting</p>
+                <p>• Timer starts when you click "Start Test"</p>
+              </div>
+
+              <Button onClick={startTest} size="lg" className="w-full">
+                Start Test
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const minutes = Math.floor(timeLeft / 60);
+  const seconds = timeLeft % 60;
+  const levelColor = LEVEL_COLORS[currentQuestion.level] || "#22c55e";
+  const options = Array.isArray(currentQuestion.options)
+    ? currentQuestion.options
+    : [];
+
+  return (
+    <AppLayout>
+      <SEO title={`Mock Test - Master JLPT`} />
+      
+      <div className="container py-8 max-w-3xl">
+        {/* Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <Badge style={{ backgroundColor: levelColor }} className="text-white">
+                {currentQuestion.level}
+              </Badge>
+              <span className="text-muted-foreground capitalize">
+                {currentQuestion.category}
+              </span>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Clock className="h-4 w-4" />
+                {minutes}:{seconds.toString().padStart(2, "0")}
+              </div>
+              <span className="text-sm font-medium">
+                {currentIndex + 1} / {questions.length}
+              </span>
+            </div>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
+
+        {/* Question Card */}
+        <Card>
+          <CardContent className="p-8 space-y-6">
+            <h2 className="text-2xl font-bold leading-relaxed">
+              {currentQuestion.question}
+            </h2>
+
+            {currentQuestion.example_sentence && (
+              <div className="bg-muted p-4 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-1">Example:</p>
+                <p className="font-medium">{currentQuestion.example_sentence}</p>
+              </div>
+            )}
+
+            {/* Answer Options */}
+            <div className="space-y-3">
+              {options.map((option: string, index: number) => {
+                const isSelected = selectedAnswer === index;
+                const isCorrect = index === currentQuestion.answer_index;
+                const showCorrect = showExplanation && isCorrect;
+                const showWrong = showExplanation && isSelected && !isCorrect;
+
+                return (
+                  <button
+                    key={index}
+                    onClick={() => handleAnswer(index)}
+                    disabled={selectedAnswer !== null}
+                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                      showCorrect
+                        ? "border-green-500 bg-green-50"
+                        : showWrong
+                        ? "border-red-500 bg-red-50"
+                        : isSelected
+                        ? "border-primary bg-primary/5"
+                        : "border-border hover:border-primary/50"
+                    } ${selectedAnswer !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">{option}</span>
+                      {showCorrect && <Check className="h-5 w-5 text-green-600" />}
+                      {showWrong && <X className="h-5 w-5 text-red-600" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Explanation */}
+            {showExplanation && currentQuestion.explanation && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900 mb-2">
+                  Explanation:
+                </p>
+                <p className="text-sm text-blue-800 leading-relaxed">
+                  {currentQuestion.explanation}
+                </p>
+              </div>
+            )}
+
+            {/* Next Button */}
+            {showExplanation && (
+              <Button onClick={handleNext} className="w-full" size="lg">
+                {currentIndex < questions.length - 1 ? (
+                  <>
+                    Next Question <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                ) : (
+                  "Finish Test"
+                )}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </AppLayout>
   );
 }
