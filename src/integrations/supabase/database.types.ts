@@ -1,4 +1,4 @@
- 
+/* eslint-disable @typescript-eslint/no-empty-object-type */
 export type Json =
   | string
   | number
@@ -49,6 +49,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      jlpt_questions: {
+        Row: {
+          answer: number | null
+          explanation: string | null
+          group: string | null
+          id: string
+          level: string | null
+          options: Json | null
+          passage: string | null
+          question: string | null
+          type: string | null
+        }
+        Insert: {
+          answer?: number | null
+          explanation?: string | null
+          group?: string | null
+          id: string
+          level?: string | null
+          options?: Json | null
+          passage?: string | null
+          question?: string | null
+          type?: string | null
+        }
+        Update: {
+          answer?: number | null
+          explanation?: string | null
+          group?: string | null
+          id?: string
+          level?: string | null
+          options?: Json | null
+          passage?: string | null
+          question?: string | null
+          type?: string | null
+        }
+        Relationships: []
       }
       mock_tests: {
         Row: {
