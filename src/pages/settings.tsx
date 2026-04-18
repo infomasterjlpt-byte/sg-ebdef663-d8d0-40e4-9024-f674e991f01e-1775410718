@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { updateUserProfile } from "@/services/userService";
+import { userService } from "@/services/userService";
 import { User, Target, Award, LogOut } from "lucide-react";
 
 export default function Settings() {
@@ -48,7 +48,7 @@ export default function Settings() {
     if (!user) return;
 
     setLoading(true);
-    await updateUserProfile(user.id, {
+    await userService.updateUserProfile(user.id, {
       target_level: targetLevel,
       daily_goal: parseInt(dailyGoal),
     });
