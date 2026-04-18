@@ -45,12 +45,12 @@ export default function CategoryTopicsPage() {
         return;
       }
 
-      setUserLevel(profile.current_level);
+      setUserLevel(profile.target_level);
 
       // Fetch topics for this category
       const topicData = await practiceService.getTopics(
         user.id,
-        profile.current_level,
+        profile.target_level,
         category
       );
       

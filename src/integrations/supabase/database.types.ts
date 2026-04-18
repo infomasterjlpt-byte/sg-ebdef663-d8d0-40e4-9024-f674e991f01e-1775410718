@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
+ 
 export type Json =
   | string
   | number
@@ -120,6 +120,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "mock_tests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      practice_sessions: {
+        Row: {
+          answered_at: string | null
+          category: string
+          group_name: string
+          id: string
+          is_correct: boolean
+          level: string
+          question_id: string
+          user_id: string
+        }
+        Insert: {
+          answered_at?: string | null
+          category: string
+          group_name: string
+          id?: string
+          is_correct: boolean
+          level: string
+          question_id: string
+          user_id: string
+        }
+        Update: {
+          answered_at?: string | null
+          category?: string
+          group_name?: string
+          id?: string
+          is_correct?: boolean
+          level?: string
+          question_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "practice_sessions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "users"

@@ -54,7 +54,7 @@ export default function PracticePage() {
       // Get user's current level
       const profile = await userService.getUserProfile(user.id);
       if (profile) {
-        setUserLevel(profile.current_level);
+        setUserLevel(profile.target_level);
       }
       
       setLoading(false);

@@ -54,11 +54,11 @@ export default function PracticeQuestionsPage() {
         return;
       }
 
-      setUserLevel(profile.current_level);
+      setUserLevel(profile.target_level);
 
       // Fetch questions for this topic
       const questionData = await practiceService.getQuestions(
-        profile.current_level,
+        profile.target_level,
         category,
         decodeURIComponent(topic),
         20

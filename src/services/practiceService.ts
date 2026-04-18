@@ -122,7 +122,7 @@ export const practiceService = {
         level: q.level || level,
         category: q.type || category,
         question: q.question || "",
-        options: Array.isArray(q.options) ? q.options : [],
+        options: Array.isArray(q.options) ? (q.options as unknown as string[]) : [],
         answer_index: q.answer || 0,
         explanation: q.explanation,
         example_sentence: q.passage
