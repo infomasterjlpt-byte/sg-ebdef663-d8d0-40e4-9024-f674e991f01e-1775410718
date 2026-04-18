@@ -201,7 +201,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section */}
-      <section className="relative bg-white overflow-hidden">
+      <section className="relative bg-white overflow-hidden" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         {/* Red Left Accent Stripe */}
         <div className="absolute left-0 top-0 bottom-0 w-[8px] bg-[#cc1f1f]" />
         
@@ -229,7 +229,7 @@ export default function Landing() {
         </div>
 
         {/* Content */}
-        <div className="container relative py-20 md:py-32" style={{ zIndex: 1 }}>
+        <div className="container relative py-20 md:py-32" style={{ zIndex: 1, position: 'relative' }}>
           <div className="max-w-2xl">
             {/* Headline */}
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
