@@ -74,12 +74,18 @@ export function TopBar() {
       <header className="border-b border-border bg-card">
         <div className="container">
           <div className="flex h-16 items-center justify-between">
-            <Link href="/dashboard" className="flex items-center">
-              <img 
-                src="/logo.svg" 
-                alt="Master JLPT" 
-                style={{ height: '40px', width: 'auto' }}
-              />
+            <Link href="/dashboard" style={{ textDecoration: 'none' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img
+                  src="/logo.svg"
+                  alt="Master JLPT"
+                  style={{ height: '28px', width: 'auto', display: 'block' }}
+                />
+                <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+                  <span style={{ color: '#111111' }}>Master</span>
+                  <span style={{ color: '#cc1f1f' }}>JLPT</span>
+                </span>
+              </div>
             </Link>
 
             <div className="flex items-center gap-3">

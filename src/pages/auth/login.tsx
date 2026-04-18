@@ -61,11 +61,17 @@ export default function Login() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <img 
-                src="/logo.svg" 
-                alt="Master JLPT" 
-                style={{ height: '40px', width: 'auto' }}
-              />
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <img
+                  src="/logo.svg"
+                  alt="Master JLPT"
+                  style={{ height: '28px', width: 'auto', display: 'block' }}
+                />
+                <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+                  <span style={{ color: '#111111' }}>Master</span>
+                  <span style={{ color: '#cc1f1f' }}>JLPT</span>
+                </span>
+              </div>
             </div>
             <CardTitle className="text-2xl">Welcome back</CardTitle>
             <CardDescription>Sign in to continue your JLPT journey</CardDescription>

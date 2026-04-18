@@ -6,11 +6,17 @@ export function Footer() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
-            <img 
-              src="/logo.svg" 
-              alt="Master JLPT" 
-              style={{ height: '32px', width: 'auto', filter: 'brightness(0) invert(1)' }}
-            />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <img
+                src="/logo.svg"
+                alt="Master JLPT"
+                style={{ height: '28px', width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }}
+              />
+              <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+                <span style={{ color: '#ffffff' }}>Master</span>
+                <span style={{ color: '#ffffff' }}>JLPT</span>
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">
               Master the JLPT with structured practice and progress tracking.
             </p>

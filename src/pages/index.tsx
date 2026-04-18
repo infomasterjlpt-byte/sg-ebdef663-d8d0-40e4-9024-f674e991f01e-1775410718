@@ -164,14 +164,14 @@ export default function Landing() {
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <img 
-              src="/logo.svg" 
-              alt="logo" 
-              style={{ height: '40px', maxHeight: '40px', width: 'auto' }}
+            <img
+              src="/logo.svg"
+              alt="Master JLPT"
+              style={{ height: '28px', width: 'auto', display: 'block' }}
             />
-            <span>
-              <span style={{ color: '#111', fontWeight: 800, fontSize: '20px' }}>Master</span>
-              <span style={{ color: '#cc1f1f', fontWeight: 800, fontSize: '20px' }}>JLPT</span>
+            <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+              <span style={{ color: '#111111' }}>Master</span>
+              <span style={{ color: '#cc1f1f' }}>JLPT</span>
             </span>
           </div>
         </Link>

@@ -32,11 +32,19 @@ export default function AuthCallback() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-white">
       <div className="text-center">
-        <img 
-          src="/logo.svg" 
-          alt="Master JLPT" 
-          style={{ height: '40px', width: 'auto', margin: '0 auto 1rem' }}
-        />
+        <div className="flex justify-center mb-4">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img
+              src="/logo.svg"
+              alt="Master JLPT"
+              style={{ height: '28px', width: 'auto', display: 'block' }}
+            />
+            <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+              <span style={{ color: '#111111' }}>Master</span>
+              <span style={{ color: '#cc1f1f' }}>JLPT</span>
+            </span>
+          </div>
+        </div>
         <p className="text-muted-foreground">Completing authentication...</p>
       </div>
     </div>
