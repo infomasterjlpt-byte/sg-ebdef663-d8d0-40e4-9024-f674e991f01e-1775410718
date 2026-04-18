@@ -162,20 +162,19 @@ export default function Landing() {
         top: 0,
         zIndex: 50
       }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '44px' }}>
-            <img
-              src="/logo.svg"
-              alt="Master JLPT"
-              height="44"
-              style={{ height: '44px !important', width: 'auto !important', minHeight: '44px', maxHeight: 'none', display: 'block' }}
-            />
-            <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '1' }}>
-              <span style={{ color: '#111111' }}>Master</span>
-              <span style={{ color: '#cc1f1f' }}>JLPT</span>
-            </span>
-          </div>
-        </Link>
+        <a href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img
+            src="/logo.svg"
+            alt="Master JLPT"
+            width={44}
+            height={44}
+            style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
+          />
+          <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: 1 }}>
+            <span style={{ color: '#111111' }}>Master</span>
+            <span style={{ color: '#cc1f1f' }}>JLPT</span>
+          </span>
+        </a>
         <div className="flex items-center gap-3">
           <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
             <SelectTrigger className="w-[100px] h-9">

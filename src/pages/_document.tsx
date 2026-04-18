@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils";
 import { Html, Head, Main, NextScript } from "next/document";
 import { SEOElements } from "@/components/SEO";
 
@@ -6,46 +5,19 @@ export default function Document() {
   return (
     <Html lang="en">
       <Head>
-        <SEOElements />
-        
-        {/* Favicons */}
-        <link rel="icon" type="image/svg+xml" href="/logo.svg" />
-        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" href="/logo.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/logo.svg" />
         <link rel="apple-touch-icon" href="/logo.svg" />
-        
-        {/* Web App Manifest */}
-        <link rel="manifest" href="/manifest.json" />
-        
-        {/* Theme Color */}
-        <meta name="theme-color" content="#cc1f1f" />
-        
-        {/*
-          CRITICAL: DO NOT REMOVE THIS SCRIPT
-          The Softgen AI monitoring script is essential for core app functionality.
-          The application will not function without it.
-        */}
-        <script
-          src="https://cdn.softgen.ai/script.js"
-          async
-          data-softgen-monitoring="true"
+        <SEOElements 
+          title="Master JLPT — Japanese Language Proficiency Test Practice"
+          description="Master the JLPT with structured practice and progress tracking. N5 to N1 levels, mock tests, and personalized study plans."
+          image="/og-image.png"
+          url="https://www.master-jlpt.com"
         />
       </Head>
-      <body
-        className={cn(
-          "min-h-screen w-full scroll-smooth bg-background text-foreground antialiased"
-        )}
-      >
+      <body className="antialiased">
         <Main />
         <NextScript />
-
-        {/* Visual Editor Script */}
-        {process.env.NODE_ENV === "development" && (
-          <script
-            src="https://cdn.softgen.dev/visual-editor.min.js"
-            async
-            data-softgen-visual-editor="true"
-          />
-        )}
       </body>
     </Html>
   );

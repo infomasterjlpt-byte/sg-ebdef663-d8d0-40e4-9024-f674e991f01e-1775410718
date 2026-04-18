@@ -3,13 +3,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Logo Size Protection - Prevent any stylesheet from shrinking the logo */
+/* Logo Size Protection - Force exact size */
 nav img[alt='Master JLPT'],
 header img[alt='Master JLPT'] {
   height: 44px !important;
-  width: auto !important;
+  width: 44px !important;
   min-height: 44px !important;
-  max-height: none !important;
+  min-width: 44px !important;
+  max-height: 44px !important;
+  max-width: 44px !important;
+  flex-shrink: 0 !important;
+  display: block !important;
 }
 
 @layer base {
