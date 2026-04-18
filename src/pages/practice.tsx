@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { SEO } from "@/components/SEO";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -121,6 +122,7 @@ export default function Practice() {
     return (
       <AppLayout>
         <SEO title="Practice - Master JLPT" />
+        <BackButton />
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-muted-foreground">Loading questions...</p>
         </div>
@@ -132,6 +134,7 @@ export default function Practice() {
     return (
       <AppLayout>
         <SEO title="Practice - Master JLPT" />
+        <BackButton />
         <div className="min-h-screen flex items-center justify-center">
           <Card className="max-w-md">
             <CardContent className="p-8 text-center space-y-4">
@@ -158,6 +161,7 @@ export default function Practice() {
   return (
     <AppLayout>
       <SEO title={`Practice ${currentQuestion.level} ${currentQuestion.category} - Master JLPT`} />
+      <BackButton />
       
       <div className="container py-8 max-w-3xl">
         {/* Header */}

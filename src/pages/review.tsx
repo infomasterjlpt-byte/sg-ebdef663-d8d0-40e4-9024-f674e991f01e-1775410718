@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { SEO } from "@/components/SEO";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -101,6 +102,7 @@ export default function Review() {
     return (
       <AppLayout>
         <SEO title="Review - Master JLPT" />
+        <BackButton />
         <div className="min-h-screen flex items-center justify-center">
           <p className="text-muted-foreground">Loading review questions...</p>
         </div>
@@ -112,6 +114,7 @@ export default function Review() {
     return (
       <AppLayout>
         <SEO title="Review - Master JLPT" />
+        <BackButton />
         <div className="min-h-screen flex items-center justify-center">
           <Card className="max-w-md">
             <CardContent className="p-8 text-center space-y-4">
@@ -139,6 +142,7 @@ export default function Review() {
   return (
     <AppLayout>
       <SEO title="Review - Master JLPT" />
+      <BackButton />
       
       <div className="container py-8 max-w-3xl">
         {/* Header */}

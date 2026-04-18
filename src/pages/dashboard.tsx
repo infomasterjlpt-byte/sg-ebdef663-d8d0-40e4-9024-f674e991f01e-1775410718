@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
+import { BackButton } from "@/components/BackButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -217,6 +218,7 @@ export default function Dashboard() {
     <>
       <SEO title="Dashboard - Master JLPT" description="Your personalized JLPT study dashboard" />
       <AppLayout>
+        <BackButton />
         <div className="space-y-6">
           {/* Welcome Section */}
           <div className="flex items-center justify-between">
