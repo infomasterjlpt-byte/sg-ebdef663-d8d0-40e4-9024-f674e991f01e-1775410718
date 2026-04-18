@@ -22,6 +22,7 @@ import {
   Globe,
   Crown
 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 const FEATURES = [
   {
@@ -120,22 +121,95 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function Landing() {
+export default function Home() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
-  const { currency, setCurrency, convertPrice, getCurrencySymbol } = useCurrency();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  const reviews = [
+    {
+      name: "Rahul M.",
+      flag: "🇧🇩",
+      stars: 5,
+      level: "N5",
+      text: "I passed N5 on my first attempt after just 3 months of using Master JLPT. The kanji drills are incredibly effective and the explanations are clear."
+    },
+    {
+      name: "Nguyen T.",
+      flag: "🇻🇳",
+      stars: 5,
+      level: "N4",
+      text: "The reading passages feel exactly like the real exam. I improved my score from 60% to 88% in two months of daily practice."
+    },
+    {
+      name: "Priya S.",
+      flag: "🇮🇳",
+      stars: 5,
+      level: "N3",
+      text: "Best JLPT prep resource I have found. The grammar explanations are clear and the mock tests are very realistic. Highly recommend."
+    },
+    {
+      name: "Carlos R.",
+      flag: "🇵🇭",
+      stars: 4,
+      level: "N2",
+      text: "Great question bank and easy to track progress. The topic by topic practice helped me focus on my weak areas."
+    },
+    {
+      name: "Li W.",
+      flag: "🇨🇳",
+      stars: 5,
+      level: "N4",
+      text: "I study on my phone during my commute every day. The interface is clean and the questions are high quality. Worth every minute."
+    },
+    {
+      name: "Amara K.",
+      flag: "🇧🇩",
+      stars: 5,
+      level: "N4",
+      text: "Failed N4 twice before finding this site. The topic by topic practice helped me identify my weak areas. Passed with 82% on my third attempt."
+    }
+  ];
+
+  const levelColors: Record<string, { bg: string; text: string }> = {
+    N5: { bg: "bg-green-100", text: "text-green-700" },
+    N4: { bg: "bg-teal-100", text: "text-teal-700" },
+    N3: { bg: "bg-purple-100", text: "text-purple-700" },
+    N2: { bg: "bg-amber-100", text: "text-amber-700" },
+    N1: { bg: "bg-red-900", text: "text-white" }
+  };
+
+  const totalSlides = Math.ceil(reviews.length / 3);
 
   useEffect(() => {
-    checkUser();
+    const checkAuth = async () => {
+      const user = await authService.getCurrentUser();
+      setIsLoggedIn(!!user);
+      setLoading(false);
+    };
+    checkAuth();
   }, []);
 
-  async function checkUser() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setUser(user);
-      router.push("/dashboard");
-    }
-  }
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % totalSlides);
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [totalSlides]);
+
+  const handlePrevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + totalSlides) % totalSlides);
+  };
+
+  const handleNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % totalSlides);
+  };
+
+  const handleDotClick = (index: number) => {
+    setCurrentSlide(index);
+  };
 
   const monthlyPrice = 499;
   const sixMonthPrice = 2499;
@@ -483,52 +557,162 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Reviews Section */}
-      <section className="py-20 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-        <div className="container">
+      {/* Reviews Section - Dynamic Carousel */}
+      <section className="py-20 bg-white">
+        <div className="container mx-auto px-6">
+          {/* Section Header */}
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Trusted by JLPT learners worldwide</h2>
-            <p className="text-gray-600 text-lg">
-              Join thousands of students who have improved their Japanese skills
+            <h2 className="text-4xl font-bold text-black mb-4">
+              What our learners say
+            </h2>
+            <p className="text-lg text-gray-600">
+              Join thousands of JLPT learners worldwide
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {[
-              {
-                name: "Sarah Chen",
-                level: "N3 Student",
-                review: "The structured approach helped me pass N3 on my first try. The mock tests were especially helpful for time management.",
-                rating: 5,
-              },
-              {
-                name: "David Kim",
-                level: "N2 Student",
-                review: "Best JLPT preparation platform I've used. The explanations are clear and the progress tracking keeps me motivated.",
-                rating: 5,
-              },
-              {
-                name: "Maria Santos",
-                level: "N5 Student",
-                review: "Perfect for beginners! The practice questions are well-organized and the review system helps me remember what I learned.",
-                rating: 5,
-              },
-            ].map((review, index) => (
-              <Card key={index} className="border-2">
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex gap-1">
-                    {Array.from({ length: review.rating }).map((_, i) => (
-                      <Star key={i} className="h-5 w-5 fill-[#f59e0b] text-[#f59e0b]" />
-                    ))}
+          {/* Carousel Container */}
+          <div className="relative max-w-7xl mx-auto">
+            {/* Navigation Arrows */}
+            <button
+              onClick={handlePrevSlide}
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-50 transition-colors hidden md:block"
+              aria-label="Previous reviews"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-600" />
+            </button>
+            <button
+              onClick={handleNextSlide}
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white rounded-full p-3 shadow-lg hover:bg-gray-50 transition-colors hidden md:block"
+              aria-label="Next reviews"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-600" />
+            </button>
+
+            {/* Reviews Track */}
+            <div className="overflow-hidden">
+              <div
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {Array.from({ length: totalSlides }).map((_, slideIndex) => (
+                  <div
+                    key={slideIndex}
+                    className="min-w-full flex gap-6 px-2"
+                  >
+                    {/* Desktop: 3 cards */}
+                    <div className="hidden md:grid md:grid-cols-3 gap-6 w-full">
+                      {reviews.slice(slideIndex * 3, slideIndex * 3 + 3).map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] p-7"
+                        >
+                          {/* Stars */}
+                          <div className="flex gap-1 mb-4">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-5 w-5 ${
+                                  i < review.stars
+                                    ? "fill-[#cc1f1f] text-[#cc1f1f]"
+                                    : "fill-gray-300 text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Review Text */}
+                          <p className="text-[#555555] text-[15px] leading-[1.6] italic mb-6">
+                            &ldquo;{review.text}&rdquo;
+                          </p>
+
+                          {/* Author Info */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{review.flag}</span>
+                            <span className="font-bold text-gray-900">
+                              {review.name}
+                            </span>
+                            <span
+                              className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${
+                                levelColors[review.level].bg
+                              } ${levelColors[review.level].text}`}
+                            >
+                              {review.level}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Mobile: 1 card */}
+                    <div className="md:hidden w-full">
+                      {reviews.slice(slideIndex * 3, slideIndex * 3 + 1).map((review, idx) => (
+                        <div
+                          key={idx}
+                          className="bg-white rounded-xl shadow-[0_2px_12px_rgba(0,0,0,0.08)] p-7"
+                        >
+                          {/* Stars */}
+                          <div className="flex gap-1 mb-4">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`h-5 w-5 ${
+                                  i < review.stars
+                                    ? "fill-[#cc1f1f] text-[#cc1f1f]"
+                                    : "fill-gray-300 text-gray-300"
+                                }`}
+                              />
+                            ))}
+                          </div>
+
+                          {/* Review Text */}
+                          <p className="text-[#555555] text-[15px] leading-[1.6] italic mb-6">
+                            &ldquo;{review.text}&rdquo;
+                          </p>
+
+                          {/* Author Info */}
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{review.flag}</span>
+                            <span className="font-bold text-gray-900">
+                              {review.name}
+                            </span>
+                            <span
+                              className={`ml-auto px-3 py-1 rounded-full text-xs font-semibold ${
+                                levelColors[review.level].bg
+                              } ${levelColors[review.level].text}`}
+                            >
+                              {review.level}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <p className="text-gray-700 leading-relaxed">"{review.review}"</p>
-                  <div>
-                    <p className="font-bold">{review.name}</p>
-                    <p className="text-sm text-gray-500">{review.level}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                ))}
+              </div>
+            </div>
+
+            {/* Dot Indicators */}
+            <div className="flex justify-center gap-2 mt-8">
+              {Array.from({ length: totalSlides }).map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleDotClick(index)}
+                  className={`h-2 w-2 rounded-full transition-all duration-300 ${
+                    currentSlide === index
+                      ? "bg-[#cc1f1f] w-8"
+                      : "bg-gray-300"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Average Rating */}
+          <div className="text-center mt-8">
+            <p className="text-[#888888] text-[13px]">
+              ★★★★★ Average 4.9 out of 5 from our learners
+            </p>
           </div>
         </div>
       </section>
