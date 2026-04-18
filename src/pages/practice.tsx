@@ -1,271 +1,133 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
+import Link from "next/link";
 import { AppLayout } from "@/components/Layout/AppLayout";
 import { SEO } from "@/components/SEO";
-import { BackButton } from "@/components/BackButton";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { ChevronRight, Check, X, BookOpen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import {
-  getRandomQuestions,
-  saveQuestionResult,
-  addToReview,
-  updateDailyProgress,
-  type Question,
-} from "@/services/questionService";
+import { authService } from "@/services/authService";
+import { userService } from "@/services/userService";
+import { ArrowRight, BookOpen, Languages, FileText } from "lucide-react";
 
-const LEVEL_COLORS: { [key: string]: string } = {
-  N5: "#22c55e",
-  N4: "#14b8a6",
-  N3: "#8b5cf6",
-  N2: "#f59e0b",
-  N1: "#991b1b",
-};
+interface Category {
+  id: string;
+  icon: string;
+  title: string;
+  description: string;
+}
 
-export default function Practice() {
+const categories: Category[] = [
+  {
+    id: "kanji",
+    icon: "漢字",
+    title: "Kanji",
+    description: "Practice kanji reading and meaning"
+  },
+  {
+    id: "grammar",
+    icon: "文法",
+    title: "Grammar",
+    description: "Master grammar patterns and structures"
+  },
+  {
+    id: "reading",
+    icon: "読解",
+    title: "Reading",
+    description: "Improve reading comprehension skills"
+  }
+];
+
+export default function PracticePage() {
   const router = useRouter();
-  const { level, category } = router.query;
-
-  const [user, setUser] = useState<any>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showExplanation, setShowExplanation] = useState(false);
-  const [correctCount, setCorrectCount] = useState(0);
+  const [userLevel, setUserLevel] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadUserAndQuestions();
-  }, [level, category]);
-
-  async function loadUserAndQuestions() {
-    setLoading(true);
-
-    // Get user
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    if (!authUser) {
-      router.push("/auth/login");
-      return;
-    }
-
-    const { data: userData } = await supabase
-      .from("users")
-      .select("*")
-      .eq("id", authUser.id)
-      .single();
-
-    setUser(userData);
-
-    // Fetch questions
-    const targetLevel = (level as string) || userData?.target_level || "N5";
-    const targetCategory = (category as string) || "kanji";
-
-    try {
-      const fetchedQuestions = await getRandomQuestions(
-        targetLevel,
-        targetCategory,
-        20
-      );
-      setQuestions(fetchedQuestions);
-    } catch (error) {
-      console.error("Error loading questions:", error);
-    }
-
-    setLoading(false);
-  }
-
-  const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-
-  async function handleAnswer(answerIndex: number) {
-    if (selectedAnswer !== null) return;
-
-    setSelectedAnswer(answerIndex);
-    setShowExplanation(true);
-
-    const isCorrect = answerIndex === currentQuestion.answer_index;
-
-    if (isCorrect) {
-      setCorrectCount(correctCount + 1);
-    }
-
-    // Save result
-    if (user) {
-      await saveQuestionResult(user.id, currentQuestion.id, isCorrect, "practice");
-
-      // Add to review if wrong
-      if (!isCorrect) {
-        await addToReview(user.id, currentQuestion.id);
+    const checkAuth = async () => {
+      const user = await authService.getCurrentUser();
+      
+      if (!user) {
+        router.push("/auth/login");
+        return;
       }
 
-      // Update daily progress
-      await updateDailyProgress(user.id, 1);
-    }
-  }
+      // Get user's current level
+      const profile = await userService.getUserProfile(user.id);
+      if (profile) {
+        setUserLevel(profile.current_level);
+      }
+      
+      setLoading(false);
+    };
 
-  function handleNext() {
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setSelectedAnswer(null);
-      setShowExplanation(false);
-    } else {
-      router.push(
-        `/progress?score=${correctCount}&total=${questions.length}`
-      );
-    }
-  }
+    checkAuth();
+  }, [router]);
 
   if (loading) {
     return (
       <AppLayout>
-        <SEO title="Practice - Master JLPT" />
-        <BackButton />
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-muted-foreground">Loading questions...</p>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-4 text-muted-foreground">Loading...</p>
+          </div>
         </div>
       </AppLayout>
     );
   }
-
-  if (!questions.length) {
-    return (
-      <AppLayout>
-        <SEO title="Practice - Master JLPT" />
-        <BackButton />
-        <div className="min-h-screen flex items-center justify-center">
-          <Card className="max-w-md">
-            <CardContent className="p-8 text-center space-y-4">
-              <BookOpen className="h-12 w-12 mx-auto text-muted-foreground" />
-              <h2 className="text-xl font-bold">No questions available</h2>
-              <p className="text-muted-foreground">
-                There are no questions for this level and category yet.
-              </p>
-              <Button onClick={() => router.push("/dashboard")}>
-                Back to Dashboard
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  const levelColor = LEVEL_COLORS[currentQuestion.level] || "#22c55e";
-  const options = Array.isArray(currentQuestion.options)
-    ? currentQuestion.options
-    : [];
 
   return (
     <AppLayout>
-      <SEO title={`Practice ${currentQuestion.level} ${currentQuestion.category} - Master JLPT`} />
-      <BackButton />
+      <SEO 
+        title="Practice - Master JLPT"
+        description="Practice JLPT questions by category"
+      />
       
-      <div className="container py-8 max-w-3xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <Badge style={{ backgroundColor: levelColor }} className="text-white">
-                {currentQuestion.level}
-              </Badge>
-              <span className="text-muted-foreground capitalize">
-                {currentQuestion.category}
-              </span>
-            </div>
-            <span className="text-sm font-medium">
-              {currentIndex + 1} / {questions.length}
-            </span>
-          </div>
-          <Progress value={progress} className="h-2" />
+          <h1 className="text-3xl font-bold mb-2">Practice</h1>
+          {userLevel && (
+            <p className="text-lg text-muted-foreground">
+              Current Level: <span className="font-semibold text-foreground">{userLevel.toUpperCase()}</span>
+            </p>
+          )}
         </div>
 
-        {/* Question Card */}
-        <Card>
-          <CardContent className="p-8 space-y-6">
-            <h2 className="text-2xl font-bold leading-relaxed">
-              {currentQuestion.question}
-            </h2>
-
-            {currentQuestion.example_sentence && (
-              <div className="bg-muted p-4 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-1">Example:</p>
-                <p className="font-medium">{currentQuestion.example_sentence}</p>
-              </div>
-            )}
-
-            {/* Answer Options */}
-            <div className="space-y-3">
-              {options.map((option: string, index: number) => {
-                const isSelected = selectedAnswer === index;
-                const isCorrect = index === currentQuestion.answer_index;
-                const showCorrect = showExplanation && isCorrect;
-                const showWrong = showExplanation && isSelected && !isCorrect;
-
-                return (
-                  <button
-                    key={index}
-                    onClick={() => handleAnswer(index)}
-                    disabled={selectedAnswer !== null}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                      showCorrect
-                        ? "border-green-500 bg-green-50"
-                        : showWrong
-                        ? "border-red-500 bg-red-50"
-                        : isSelected
-                        ? "border-primary bg-primary/5"
-                        : "border-border hover:border-primary/50"
-                    } ${selectedAnswer !== null ? "cursor-not-allowed" : "cursor-pointer"}`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-medium">{option}</span>
-                      {showCorrect && <Check className="h-5 w-5 text-green-600" />}
-                      {showWrong && <X className="h-5 w-5 text-red-600" />}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Explanation */}
-            {showExplanation && currentQuestion.explanation && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm font-medium text-blue-900 mb-2">
-                  Explanation:
-                </p>
-                <p className="text-sm text-blue-800 leading-relaxed">
-                  {currentQuestion.explanation}
-                </p>
-              </div>
-            )}
-
-            {/* Next Button */}
-            {showExplanation && (
-              <Button
-                onClick={handleNext}
-                className="w-full"
-                size="lg"
-              >
-                {currentIndex < questions.length - 1 ? (
-                  <>
-                    Next Question <ChevronRight className="ml-2 h-4 w-4" />
-                  </>
-                ) : (
-                  "View Results"
-                )}
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Score Tracker */}
-        <div className="mt-6 text-center">
-          <p className="text-sm text-muted-foreground">
-            Score: <span className="font-bold text-foreground">{correctCount}</span> /{" "}
-            {currentIndex + (selectedAnswer !== null ? 1 : 0)}
-          </p>
+        {/* Category Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/practice/${category.id}`}
+              className="block group"
+            >
+              <Card className="h-full p-6 bg-white border border-gray-200 border-t-4 border-t-primary hover:shadow-lg transition-shadow cursor-pointer">
+                <div className="text-center">
+                  {/* Icon */}
+                  <div className="text-5xl font-bold mb-4 text-primary">
+                    {category.icon}
+                  </div>
+                  
+                  {/* Title */}
+                  <h2 className="text-2xl font-bold mb-2">
+                    {category.title}
+                  </h2>
+                  
+                  {/* Description */}
+                  <p className="text-muted-foreground mb-4">
+                    {category.description}
+                  </p>
+                  
+                  {/* Arrow */}
+                  <div className="flex items-center justify-center text-primary group-hover:translate-x-1 transition-transform">
+                    <span className="font-medium">Start Practice</span>
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </div>
+                </div>
+              </Card>
+            </Link>
+          ))}
         </div>
       </div>
     </AppLayout>
