@@ -6,13 +6,21 @@ export function Footer() {
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <img
                 src="/logo.svg"
                 alt="Master JLPT"
-                style={{ height: '28px', width: 'auto', display: 'block', filter: 'brightness(0) invert(1)' }}
+                style={{
+                  height: '40px',
+                  width: 'auto',
+                  display: 'block',
+                  minHeight: '40px',
+                  maxHeight: '40px',
+                  flexShrink: 0,
+                  filter: 'brightness(0) invert(1)'
+                }}
               />
-              <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+              <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: '1', letterSpacing: '-0.5px' }}>
                 <span style={{ color: '#ffffff' }}>Master</span>
                 <span style={{ color: '#ffffff' }}>JLPT</span>
               </span>
