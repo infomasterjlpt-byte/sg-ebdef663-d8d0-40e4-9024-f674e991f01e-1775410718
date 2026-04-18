@@ -154,7 +154,7 @@ export default function Landing() {
         backgroundColor: 'white',
         borderBottom: '2px solid #cc1f1f',
         padding: '0 24px',
-        minHeight: '72px',
+        minHeight: '64px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -163,20 +163,14 @@ export default function Landing() {
         zIndex: 50
       }}>
         <Link href="/" style={{ textDecoration: 'none' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '44px' }}>
             <img
               src="/logo.svg"
               alt="Master JLPT"
-              style={{
-                height: '48px',
-                width: 'auto',
-                display: 'block',
-                minHeight: '48px',
-                maxHeight: '48px',
-                flexShrink: 0
-              }}
+              height="44"
+              style={{ height: '44px !important', width: 'auto !important', minHeight: '44px', maxHeight: 'none', display: 'block' }}
             />
-            <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: '1', letterSpacing: '-0.5px' }}>
+            <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '1' }}>
               <span style={{ color: '#111111' }}>Master</span>
               <span style={{ color: '#cc1f1f' }}>JLPT</span>
             </span>

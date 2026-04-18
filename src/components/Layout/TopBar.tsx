@@ -71,24 +71,18 @@ export function TopBar() {
 
   return (
     <>
-      <header className="border-b border-border bg-card" style={{ minHeight: '72px' }}>
+      <header className="border-b border-border bg-card" style={{ minHeight: '64px' }}>
         <div className="container">
-          <div className="flex items-center justify-between" style={{ minHeight: '72px' }}>
+          <div className="flex items-center justify-between" style={{ minHeight: '64px' }}>
             <Link href="/dashboard" style={{ textDecoration: 'none' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', height: '44px' }}>
                 <img
                   src="/logo.svg"
                   alt="Master JLPT"
-                  style={{
-                    height: '48px',
-                    width: 'auto',
-                    display: 'block',
-                    minHeight: '48px',
-                    maxHeight: '48px',
-                    flexShrink: 0
-                  }}
+                  height="44"
+                  style={{ height: '44px !important', width: 'auto !important', minHeight: '44px', maxHeight: 'none', display: 'block' }}
                 />
-                <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: '1', letterSpacing: '-0.5px' }}>
+                <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '1' }}>
                   <span style={{ color: '#111111' }}>Master</span>
                   <span style={{ color: '#cc1f1f' }}>JLPT</span>
                 </span>
@@ -108,7 +102,7 @@ export function TopBar() {
                   <SelectItem value="NPR">₨ NPR</SelectItem>
                   <SelectItem value="INR">₹ INR</SelectItem>
                   <SelectItem value="VND">₫ VND</SelectItem>
-                  <SelectItem value="LKR">රු LKR</SelectItem>
+                  <SelectItem value="LKR">රు LKR</SelectItem>
                 </SelectContent>
               </Select>
 
