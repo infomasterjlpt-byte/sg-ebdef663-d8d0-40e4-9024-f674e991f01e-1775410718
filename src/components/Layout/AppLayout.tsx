@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import { Navigation } from "./Navigation";
 import { TopBar } from "./TopBar";
 import { Footer } from "./Footer";
@@ -51,7 +51,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}
 
         {/* Main content area */}
-        <main className="flex-1 overflow-y-auto bg-gray-50">
+        <main className="flex-1 overflow-y-auto bg-gray-50" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
           <div className="container max-w-7xl mx-auto px-4 lg:px-6 py-6">
             {children}
           </div>

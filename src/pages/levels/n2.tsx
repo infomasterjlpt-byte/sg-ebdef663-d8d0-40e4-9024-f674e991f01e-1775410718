@@ -67,15 +67,17 @@ export default function N2Page() {
 
       <div className="min-h-screen bg-white">
         <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
-          <div className="container flex items-center justify-between h-16">
+          <div className="container flex items-center justify-between h-16" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
             <Link href="/levels" style={{ textDecoration: 'none' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <img
                   src="/logo.svg"
                   alt="Master JLPT"
-                  style={{ height: '28px', width: 'auto', display: 'block' }}
+                  width={44}
+                  height={44}
+                  style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
                 />
-                <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: '28px' }}>
+                <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: 1 }}>
                   <span style={{ color: '#111111' }}>Master</span>
                   <span style={{ color: '#cc1f1f' }}>JLPT</span>
                 </span>
@@ -86,140 +88,161 @@ export default function N2Page() {
 
         <BackButton />
 
-        <section className="relative bg-white border-b">
-          <div className="absolute left-0 top-0 bottom-0 w-[8px]" style={{ backgroundColor: LEVEL_DATA.color }} />
-          <div className="container py-12 pl-12">
-            <div className="max-w-4xl">
-              <div className="flex items-center gap-4 mb-6">
-                <div 
-                  className="text-6xl font-bold"
-                  style={{ color: LEVEL_DATA.color }}
-                >
-                  {LEVEL_DATA.level}
-                </div>
-                <div>
-                  <h1 className="text-3xl font-bold text-[#111111]">{LEVEL_DATA.name}</h1>
-                  <p className="text-gray-600">{LEVEL_DATA.description}</p>
-                </div>
+        {/* Hero Header */}
+        <div className="bg-white border-l-[8px] border-[#f59e0b]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+          <div className="container py-12">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="space-y-3">
+                <div className="text-6xl font-bold" style={{ color: '#f59e0b' }}>N2</div>
+                <h1 className="text-3xl font-bold text-[#111111]">Upper Intermediate Level</h1>
+                <p className="text-gray-600">Near-fluent Japanese proficiency</p>
               </div>
               <Button 
-                size="lg" 
-                className="bg-[#cc1f1f] hover:bg-[#b01b1b] text-white"
+                className="bg-[#cc1f1f] hover:bg-[#b01b1b] text-white px-8 py-6 text-lg"
                 asChild
               >
-                <Link href="/practice?level=N2">
-                  Start Practicing Today <ChevronRight className="ml-2 h-4 w-4" />
-                </Link>
+                <Link href="/practice?level=N2">Start Practicing Today →</Link>
               </Button>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className="border-b bg-gray-50">
-          <div className="container py-6">
-            <div className="flex items-center gap-3 justify-center">
-              {LEVELS.map((lvl) => (
-                <Link key={lvl.id} href={`/levels/${lvl.id}`}>
-                  <Button
-                    variant={lvl.id === "n2" ? "default" : "outline"}
-                    className={lvl.id === "n2" ? "font-bold" : ""}
-                    style={lvl.id === "n2" ? { backgroundColor: lvl.color, color: 'white' } : {}}
-                  >
-                    {lvl.name}
-                  </Button>
-                </Link>
-              ))}
+        {/* Level Selector Pills */}
+        <div className="bg-[#f8f8f8] py-6" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+          <div className="container">
+            <div className="flex gap-3 justify-center flex-wrap">
+              <Link href="/levels/n5">
+                <Badge variant="outline" className="px-6 py-2 text-base cursor-pointer border-2">N5</Badge>
+              </Link>
+              <Link href="/levels/n4">
+                <Badge variant="outline" className="px-6 py-2 text-base cursor-pointer border-2">N4</Badge>
+              </Link>
+              <Link href="/levels/n3">
+                <Badge variant="outline" className="px-6 py-2 text-base cursor-pointer border-2">N3</Badge>
+              </Link>
+              <Link href="/levels/n2">
+                <Badge className="px-6 py-2 text-base cursor-pointer" style={{ backgroundColor: '#f59e0b', color: 'white' }}>N2</Badge>
+              </Link>
+              <Link href="/levels/n1">
+                <Badge variant="outline" className="px-6 py-2 text-base cursor-pointer border-2">N1</Badge>
+              </Link>
             </div>
           </div>
-        </section>
+        </div>
 
-        <section className="py-16 bg-white">
+        {/* Syllabus Cards */}
+        <section className="py-16 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
           <div className="container">
-            <div className="max-w-6xl mx-auto">
-              <h2 className="text-3xl font-bold text-center mb-12">What's Covered</h2>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {LEVEL_DATA.categories.map((category) => (
-                  <Card 
-                    key={category.id} 
-                    className="border border-gray-200"
-                    style={{ borderTop: `3px solid ${LEVEL_DATA.color}` }}
-                  >
-                    <CardContent className="p-6 text-center space-y-4">
-                      <div className="text-6xl font-bold" style={{ color: category.comingSoon ? '#9ca3af' : LEVEL_DATA.color }}>
-                        {category.icon}
-                      </div>
-                      <h3 className="text-xl font-bold">{category.name}</h3>
-                      <p className="text-gray-600 text-sm">{category.description}</p>
-                      <div className="pt-2">
-                        {category.comingSoon ? (
-                          <Badge variant="secondary" className="text-sm bg-gray-200 text-gray-600">
-                            Coming Soon
-                          </Badge>
-                        ) : (
-                          <Badge variant="secondary" className="text-sm">
-                            {category.questions.toLocaleString()} questions
-                          </Badge>
-                        )}
-                      </div>
-                      <Button 
-                        className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white"
-                        disabled={category.comingSoon}
-                        asChild={!category.comingSoon}
-                      >
-                        {category.comingSoon ? (
-                          <span>Coming Soon</span>
-                        ) : (
-                          <Link href={`/practice?level=N2&category=${category.id}`}>
-                            Start {category.name}
-                          </Link>
-                        )}
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="py-16 bg-gray-50">
-          <div className="container">
-            <div className="max-w-3xl mx-auto">
-              <h2 className="text-3xl font-bold mb-8 text-center">What You'll Learn</h2>
-              <div className="space-y-4">
-                {LEVEL_DATA.whatYouLearn.map((item, index) => (
-                  <div key={index} className="flex items-start gap-3">
-                    <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
-                    <p className="text-lg text-gray-700">{item}</p>
+            <h2 className="text-3xl font-bold text-[#111111] mb-8">Course Syllabus</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Kanji Card */}
+              <Card className="border border-gray-200 border-t-[3px]" style={{ borderTopColor: '#f59e0b' }}>
+                <CardContent className="p-8 space-y-4">
+                  <div className="text-6xl text-center" style={{ color: '#f59e0b' }}>漢字</div>
+                  <h3 className="text-2xl font-bold text-center">Kanji</h3>
+                  <p className="text-gray-600 text-center">
+                    Advanced kanji for near-fluent reading
+                  </p>
+                  <div className="text-center py-4">
+                    <div className="text-3xl font-bold" style={{ color: '#f59e0b' }}>1,770</div>
+                    <div className="text-sm text-gray-600">Practice Questions</div>
                   </div>
-                ))}
-              </div>
+                  <Button className="w-full" style={{ backgroundColor: '#f59e0b' }} asChild>
+                    <Link href="/practice?level=N2&category=kanji">Practice Kanji</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Grammar Card */}
+              <Card className="border border-gray-200 border-t-[3px]" style={{ borderTopColor: '#f59e0b' }}>
+                <CardContent className="p-8 space-y-4">
+                  <div className="text-6xl text-center" style={{ color: '#f59e0b' }}>文法</div>
+                  <h3 className="text-2xl font-bold text-center">Grammar</h3>
+                  <p className="text-gray-600 text-center">
+                    Complex grammar patterns
+                  </p>
+                  <div className="text-center py-4">
+                    <Badge variant="secondary" className="text-sm">Coming Soon</Badge>
+                  </div>
+                  <Button className="w-full" disabled variant="secondary">
+                    Coming Soon
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Reading Card */}
+              <Card className="border border-gray-200 border-t-[3px]" style={{ borderTopColor: '#f59e0b' }}>
+                <CardContent className="p-8 space-y-4">
+                  <div className="text-6xl text-center" style={{ color: '#f59e0b' }}>読解</div>
+                  <h3 className="text-2xl font-bold text-center">Reading</h3>
+                  <p className="text-gray-600 text-center">
+                    Newspaper articles and essays
+                  </p>
+                  <div className="text-center py-4">
+                    <Badge variant="secondary" className="text-sm">Coming Soon</Badge>
+                  </div>
+                  <Button className="w-full" disabled variant="secondary">
+                    Coming Soon
+                  </Button>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
 
-        <section className="py-16 bg-[#cc1f1f]">
+        {/* What You'll Learn */}
+        <section className="py-16 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
           <div className="container">
-            <div className="max-w-3xl mx-auto text-center space-y-6">
-              <h2 className="text-4xl font-bold text-white">
+            <h2 className="text-3xl font-bold text-[#111111] mb-8">What You'll Learn</h2>
+            <div className="max-w-3xl">
+              <ul className="space-y-4">
+                <li className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
+                  <span className="text-lg text-gray-700">Near-fluent vocabulary (6,000 words)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
+                  <span className="text-lg text-gray-700">Kanji (367 new characters)</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
+                  <span className="text-lg text-gray-700">Complex grammar patterns</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
+                  <span className="text-lg text-gray-700">Reading newspaper articles and essays</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <Check className="h-6 w-6 text-[#f59e0b] flex-shrink-0 mt-1" />
+                  <span className="text-lg text-gray-700">Understanding natural spoken Japanese</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="py-16 bg-[#cc1f1f]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+          <div className="container">
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl md:text-4xl font-bold text-white">
                 Ready to start? Begin practicing N2 now.
               </h2>
               <Button 
                 size="lg" 
-                className="bg-white text-[#cc1f1f] hover:bg-gray-100 text-lg px-12 py-6 h-auto font-bold"
+                className="bg-white text-[#cc1f1f] hover:bg-gray-100 px-12 py-6 h-auto text-lg font-bold"
                 asChild
               >
-                <Link href="/practice?level=N2">
-                  Start Practicing <ChevronRight className="ml-2 h-5 w-5" />
-                </Link>
+                <Link href="/practice?level=N2">Start Practicing →</Link>
               </Button>
             </div>
           </div>
         </section>
 
-        <footer className="border-t border-gray-200 bg-white py-8">
-          <div className="container text-center">
-            <p className="text-sm text-gray-600">
+        {/* Footer */}
+        <footer className="bg-white border-t border-gray-200 py-8" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+          <div className="container">
+            <p className="text-center text-gray-600 text-sm">
               © {new Date().getFullYear()} Master JLPT. All rights reserved.
             </p>
           </div>
