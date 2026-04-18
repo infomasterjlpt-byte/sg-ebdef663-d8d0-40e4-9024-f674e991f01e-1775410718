@@ -229,7 +229,7 @@ export default function Landing() {
         </div>
 
         {/* Content */}
-        <div className="container relative py-20 md:py-32" style={{ zIndex: 1 }}>
+        <div className="container relative py-20 md:py-32" style={{ zIndex: 1, paddingLeft: '64px' }}>
           <div className="max-w-2xl">
             {/* Headline */}
             <h1 className="text-5xl md:text-6xl font-bold mb-6 leading-tight">
