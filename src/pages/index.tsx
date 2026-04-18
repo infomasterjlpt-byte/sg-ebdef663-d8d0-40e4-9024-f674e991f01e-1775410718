@@ -282,35 +282,63 @@ export default function Landing() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-background">
+      <section className="py-20 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Everything you need to pass</h2>
-            <p className="text-muted-foreground text-lg">Comprehensive tools designed for serious learners</p>
+            <h2 className="text-4xl font-bold text-[#111111] mb-4">Everything you need to pass the JLPT</h2>
+            <p className="text-gray-600 text-lg">
+              Comprehensive tools and resources for every level
+            </p>
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {FEATURES.map((feature) => {
-              const Icon = feature.icon;
-              return (
-                <Card key={feature.title} className="text-center">
-                  <CardHeader>
-                    <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <Icon className="h-6 w-6 text-accent" />
-                    </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground">{feature.description}</p>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-full bg-red-50">
+                    <BookOpen className="h-8 w-8 text-[#cc1f1f]" />
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl text-[#111111]">Practice Questions</h3>
+                <p className="text-gray-600">
+                  Thousands of questions across kanji, grammar, vocabulary, and reading comprehension
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-full bg-red-50">
+                    <Target className="h-8 w-8 text-[#cc1f1f]" />
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl text-[#111111]">Progress Tracking</h3>
+                <p className="text-gray-600">
+                  Monitor your daily progress, study streaks, and category performance
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow">
+              <CardContent className="p-8 text-center space-y-4">
+                <div className="flex justify-center mb-4">
+                  <div className="p-4 rounded-full bg-red-50">
+                    <Award className="h-8 w-8 text-[#cc1f1f]" />
+                  </div>
+                </div>
+                <h3 className="font-bold text-xl text-[#111111]">Mock Tests</h3>
+                <p className="text-gray-600">
+                  Full-length practice exams with realistic timing and difficulty
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
       {/* Levels Section */}
-      <section className="py-20 bg-[#f8f8f8]">
+      <section className="py-20 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-[#111111] mb-4">Choose your level</h2>
@@ -393,198 +421,70 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Pricing Section */}
-      <section id="pricing" className="py-20 bg-background">
+      {/* How It Works Section */}
+      <section className="py-20 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Simple, transparent pricing</h2>
-            <p className="text-muted-foreground text-lg">Start free with 3 questions/day, upgrade anytime</p>
+            <h2 className="text-4xl font-bold mb-4">How it works</h2>
+            <p className="text-gray-600 text-lg">
+              Your path to JLPT success in 4 simple steps
+            </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Free Plan */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-2xl">Free</CardTitle>
-                <CardDescription className="text-3xl font-bold text-foreground pt-2">
-                  {symbol}0<span className="text-base font-normal text-muted-foreground">/month</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>3 questions per day</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>N5 level only (limited)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Basic progress tracking</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Daily streak counter</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Smart review system</span>
-                  </li>
-                </ul>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/auth/signup">Start Free</Link>
-                </Button>
-              </CardContent>
-            </Card>
 
-            {/* Premium Monthly */}
-            <Card className="border-2 border-accent relative overflow-hidden">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge className="bg-accent text-accent-foreground px-4 py-1">Most Popular</Badge>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-[#cc1f1f] flex items-center justify-center text-white text-2xl font-bold">
+                  1
+                </div>
               </div>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Crown className="h-6 w-6 text-accent" />
-                  Premium
-                </CardTitle>
-                <CardDescription className="text-3xl font-bold text-foreground pt-2">
-                  {symbol}{convertPrice(monthlyPrice)}<span className="text-base font-normal text-muted-foreground">/month</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span className="font-semibold">All levels: N5, N4, N3, N2, N1</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span className="font-semibold">Unlimited questions</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Full mock exams (all levels)</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Advanced analytics</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Weak word lists</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Study time graphs</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-accent flex-shrink-0" />
-                    <span>Predicted score</span>
-                  </li>
-                </ul>
-                <Button className="w-full" asChild>
-                  <Link href="/auth/signup">Go Premium</Link>
-                </Button>
-              </CardContent>
-            </Card>
+              <h3 className="font-bold text-lg">Choose Your Level</h3>
+              <p className="text-gray-600 text-sm">
+                Select your target JLPT level from N5 to N1
+              </p>
+            </div>
 
-            {/* Premium Plus 6 Months */}
-            <Card className="border-2 border-primary relative overflow-hidden">
-              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                <Badge className="bg-primary text-white px-4 py-1 flex items-center gap-1">
-                  <Zap className="h-4 w-4" />
-                  Best Value
-                </Badge>
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-[#cc1f1f] flex items-center justify-center text-white text-2xl font-bold">
+                  2
+                </div>
               </div>
-              <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-2">
-                  <Zap className="h-6 w-6 text-primary" />
-                  Premium Plus
-                </CardTitle>
-                <CardDescription className="text-3xl font-bold text-foreground pt-2">
-                  {symbol}{convertPrice(sixMonthPrice)}<span className="text-base font-normal text-muted-foreground">/6 months</span>
-                </CardDescription>
-                <p className="text-sm text-muted-foreground">
-                  Save {symbol}{convertPrice(monthlyPrice * 6 - sixMonthPrice)} vs monthly
-                </p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span className="font-semibold">Everything in Premium</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span className="font-semibold">6 months access</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Weak kanji/vocab lists</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Predicted JLPT score</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Personalized study plan</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Priority email support</span>
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <Check className="h-5 w-5 text-primary flex-shrink-0" />
-                    <span>Early access to features</span>
-                  </li>
-                </ul>
-                <Button className="w-full bg-primary hover:bg-primary/90" asChild>
-                  <Link href="/auth/signup">Get Premium Plus</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
+              <h3 className="font-bold text-lg">Practice Daily</h3>
+              <p className="text-gray-600 text-sm">
+                Answer questions and build your knowledge
+              </p>
+            </div>
 
-      {/* Testimonials Section */}
-      <section className="py-20 bg-surface">
-        <div className="container">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">Loved by students worldwide</h2>
-            <p className="text-muted-foreground text-lg">See what learners are saying</p>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            {TESTIMONIALS.map((testimonial) => (
-              <Card key={testimonial.name}>
-                <CardHeader>
-                  <div className="flex items-center gap-1 mb-2">
-                    {Array.from({ length: testimonial.rating }).map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-accent text-accent" />
-                    ))}
-                  </div>
-                  <CardDescription className="text-foreground italic">
-                    "{testimonial.text}"
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-semibold">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.level} Student</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-[#cc1f1f] flex items-center justify-center text-white text-2xl font-bold">
+                  3
+                </div>
+              </div>
+              <h3 className="font-bold text-lg">Track Progress</h3>
+              <p className="text-gray-600 text-sm">
+                Monitor your improvement with detailed stats
+              </p>
+            </div>
+
+            <div className="text-center space-y-4">
+              <div className="flex justify-center">
+                <div className="w-16 h-16 rounded-full bg-[#cc1f1f] flex items-center justify-center text-white text-2xl font-bold">
+                  4
+                </div>
+              </div>
+              <h3 className="font-bold text-lg">Pass Your Exam</h3>
+              <p className="text-gray-600 text-sm">
+                Take the JLPT with confidence
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* Reviews Section */}
-      <section className="py-20 bg-white">
+      <section className="py-20 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">Trusted by JLPT learners worldwide</h2>
@@ -634,7 +534,7 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-[#cc1f1f]">
+      <section className="py-20 bg-[#cc1f1f]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="max-w-3xl mx-auto text-center space-y-6">
             <h2 className="text-4xl md:text-5xl font-bold text-white">
