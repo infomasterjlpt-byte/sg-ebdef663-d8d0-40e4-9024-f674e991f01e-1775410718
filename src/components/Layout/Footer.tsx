@@ -12,12 +12,11 @@ export function Footer() {
                 alt="Master JLPT"
                 style={{
                   height: '40px',
-                  width: 'auto',
+                  width: '40px',
                   display: 'block',
                   minHeight: '40px',
                   maxHeight: '40px',
-                  flexShrink: 0,
-                  filter: 'brightness(0) invert(1)'
+                  flexShrink: 0
                 }}
               />
               <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: '1', letterSpacing: '-0.5px' }}>
