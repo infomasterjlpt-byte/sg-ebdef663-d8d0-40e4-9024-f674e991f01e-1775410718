@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ChevronRight, Check } from "lucide-react";
+import { Footer } from "@/components/Layout/Footer";
 
 const LEVEL_DATA = {
   level: "N1",
@@ -239,14 +240,7 @@ export default function N1Page() {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-white border-t border-gray-200 py-8" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-          <div className="container">
-            <p className="text-center text-gray-600 text-sm">
-              © {new Date().getFullYear()} Master JLPT. All rights reserved.
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </>
   );
