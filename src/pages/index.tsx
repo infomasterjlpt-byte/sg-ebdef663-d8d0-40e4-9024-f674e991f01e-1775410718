@@ -1,129 +1,16 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useState } from "react";
 import Link from "next/link";
-import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { supabase } from "@/integrations/supabase/client";
-import { useCurrency } from "@/contexts/CurrencyContext";
-import { authService } from "@/services/authService";
-import { 
-  BookOpen, 
-  Brain, 
-  Clock, 
-  TrendingUp, 
-  Check, 
-  Star,
-  Lock,
-  Zap,
-  Target,
-  Award,
-  Globe,
-  Crown
-} from "lucide-react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
-
-const FEATURES = [
-  {
-    icon: BookOpen,
-    title: "Practice Mode",
-    description: "Choose your level, get instant explanations for every answer. Build mastery one question at a time.",
-  },
-  {
-    icon: Brain,
-    title: "Smart Review",
-    description: "App remembers your wrong answers and repeats them until mastered. Never forget what you've learned.",
-  },
-  {
-    icon: Clock,
-    title: "Mock Tests",
-    description: "Full timed JLPT-style exams with detailed results. Experience the real test before exam day.",
-  },
-];
-
-const LEVELS = [
-  {
-    level: "N5",
-    difficulty: "Beginner",
-    kanji: 100,
-    vocab: 800,
-    grammar: 285,
-    reading: 212,
-    total: 997,
-    isFree: false,
-    color: "bg-level-n5",
-  },
-  {
-    level: "N4",
-    difficulty: "Elementary",
-    kanji: 300,
-    vocab: 1500,
-    grammar: 300,
-    reading: 250,
-    total: 2350,
-    isFree: false,
-    color: "bg-level-n4",
-  },
-  {
-    level: "N3",
-    difficulty: "Intermediate",
-    kanji: 650,
-    vocab: 3700,
-    grammar: 350,
-    reading: 300,
-    total: 5000,
-    isFree: false,
-    color: "bg-level-n3",
-  },
-  {
-    level: "N2",
-    difficulty: "Upper Intermediate",
-    kanji: 1000,
-    vocab: 6000,
-    grammar: 400,
-    reading: 350,
-    total: 7750,
-    isFree: false,
-    color: "bg-level-n2",
-  },
-  {
-    level: "N1",
-    difficulty: "Advanced",
-    kanji: 2000,
-    vocab: 10000,
-    grammar: 450,
-    reading: 400,
-    total: 12850,
-    isFree: false,
-    color: "bg-level-n1",
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: "Sarah Chen",
-    level: "N3",
-    text: "The smart review system helped me remember kanji I kept forgetting. Passed N3 on my first try!",
-    rating: 5,
-  },
-  {
-    name: "Miguel Rodriguez",
-    level: "N5",
-    text: "Perfect for beginners. The explanations are clear and the daily goal keeps me motivated.",
-    rating: 5,
-  },
-  {
-    name: "Yuki Tanaka",
-    level: "N2",
-    text: "Mock tests feel exactly like the real exam. The timer pressure helped me prepare mentally.",
-    rating: 5,
-  },
-];
+import { SEO } from "@/components/SEO";
+import { BookOpen, Target, Award, Check, Star, Globe, ChevronLeft, ChevronRight } from "lucide-react";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { Footer } from "@/components/Layout/Footer";
 
 export default function Home() {
-  const router = useRouter();
+  const [currency, setCurrency] = useState<"JPY" | "USD" | "BDT" | "NPR" | "INR" | "VND" | "LKR">("JPY");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -212,9 +99,6 @@ export default function Home() {
     setCurrentSlide(index);
   };
 
-  const { currency, setCurrency, getCurrencySymbol } = useCurrency();
-  const monthlyPrice = 499;
-  const sixMonthPrice = 2499;
   const symbol = getCurrencySymbol();
 
   return (
@@ -745,32 +629,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-border bg-card py-12">
-        <div className="container">
-          <div className="text-center space-y-4">
-            <p className="text-sm font-bold text-[#cc1f1f]">
-              Powered by Toki English
-            </p>
-            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
-              © 2025 Toki English. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
-              JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
-              This app is not affiliated with or endorsed by the Japan Foundation.
-            </p>
-            <div className="flex items-center justify-center gap-4 pt-4">
-              <Link href="/privacy" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-                Privacy Policy
-              </Link>
-              <span className="text-muted-foreground">·</span>
-              <Link href="/terms" className="text-sm text-muted-foreground hover:text-accent transition-colors">
-                Terms of Service
-              </Link>
-            </div>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </>
   );
 }
