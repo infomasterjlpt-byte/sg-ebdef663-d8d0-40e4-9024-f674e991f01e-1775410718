@@ -2,7 +2,7 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card py-8 mt-auto" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+    <footer className="border-t border-gray-800 py-8 mt-auto" style={{ paddingLeft: '5%', paddingRight: '5%', backgroundColor: '#000000' }}>
       <div className="container">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-3">
@@ -25,40 +25,40 @@ export function Footer() {
                 <span style={{ color: '#ffffff' }}>JLPT</span>
               </span>
             </div>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-sm" style={{ color: '#a3a3a3' }}>
               Master the JLPT with structured practice and progress tracking.
             </p>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3">Product</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/levels" className="hover:text-foreground">Levels</Link></li>
-              <li><Link href="/practice" className="hover:text-foreground">Practice</Link></li>
-              <li><Link href="/mock-test" className="hover:text-foreground">Mock Tests</Link></li>
-              <li><Link href="/pricing" className="hover:text-foreground">Pricing</Link></li>
+            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Product</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/levels" className="hover:text-white" style={{ color: '#a3a3a3' }}>Levels</Link></li>
+              <li><Link href="/practice" className="hover:text-white" style={{ color: '#a3a3a3' }}>Practice</Link></li>
+              <li><Link href="/mock-test" className="hover:text-white" style={{ color: '#a3a3a3' }}>Mock Tests</Link></li>
+              <li><Link href="/pricing" className="hover:text-white" style={{ color: '#a3a3a3' }}>Pricing</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3">Resources</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/grammar-guide" className="hover:text-foreground">Grammar Guide</Link></li>
-              <li><Link href="/exam-tips" className="hover:text-foreground">Exam Tips</Link></li>
-              <li><Link href="/progress" className="hover:text-foreground">Track Progress</Link></li>
+            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Resources</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/grammar-guide" className="hover:text-white" style={{ color: '#a3a3a3' }}>Grammar Guide</Link></li>
+              <li><Link href="/exam-tips" className="hover:text-white" style={{ color: '#a3a3a3' }}>Exam Tips</Link></li>
+              <li><Link href="/progress" className="hover:text-white" style={{ color: '#a3a3a3' }}>Track Progress</Link></li>
             </ul>
           </div>
 
           <div>
-            <h3 className="font-semibold mb-3">Legal</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/privacy" className="hover:text-foreground">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-foreground">Terms of Service</Link></li>
+            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Legal</h3>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/privacy" className="hover:text-white" style={{ color: '#a3a3a3' }}>Privacy Policy</Link></li>
+              <li><Link href="/terms" className="hover:text-white" style={{ color: '#a3a3a3' }}>Terms of Service</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm" style={{ color: '#737373' }}>
           <p>&copy; {new Date().getFullYear()} Master JLPT. All rights reserved.</p>
         </div>
       </div>
