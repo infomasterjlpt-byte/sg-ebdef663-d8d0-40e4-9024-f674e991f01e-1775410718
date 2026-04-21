@@ -58,7 +58,14 @@ export function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm" style={{ color: '#737373' }}>
-          <p>&copy; {new Date().getFullYear()} Master JLPT. All rights reserved.</p>
+          <p className="mb-3">&copy; {new Date().getFullYear()} Master JLPT. All rights reserved.</p>
+          <p className="text-xs mb-2" style={{ color: '#525252' }}>
+            This site is not affiliated with or endorsed by the Japan Foundation or Japan Educational Exchanges and Services (JEES).
+            JLPT is a registered trademark of the Japan Foundation and JEES.
+          </p>
+          <p className="text-xs" style={{ color: '#525252' }}>
+            Powered by <a href="https://tokienglish.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" style={{ color: '#737373' }}>Toki English</a>
+          </p>
         </div>
       </div>
     </footer>
