@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,6 +8,8 @@ import { SEO } from "@/components/SEO";
 import { BookOpen, Target, Award, Check, Star, Globe, ChevronLeft, ChevronRight } from "lucide-react";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { Footer } from "@/components/Layout/Footer";
+import { authService } from "@/services/authService";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 export default function Home() {
   const [currency, setCurrency] = useState<"JPY" | "USD" | "BDT" | "NPR" | "INR" | "VND" | "LKR">("JPY");
@@ -99,7 +101,23 @@ export default function Home() {
     setCurrentSlide(index);
   };
 
-  const symbol = getCurrencySymbol();
+  // Note: Since Home is the root component and not wrapped in CurrencyProvider in this file,
+  // we can't use useCurrency here. We'll handle currency via local state and Context if needed.
+  // The previous getCurrencySymbol() call was failing. I'll define it locally if it's used.
+
+  const getCurrencySymbol = (curr: string) => {
+    switch(curr) {
+      case "USD": return "$";
+      case "BDT": return "৳";
+      case "NPR": return "₨";
+      case "INR": return "₹";
+      case "VND": return "₫";
+      case "LKR": return "රු";
+      case "JPY": default: return "¥";
+    }
+  };
+
+  const symbol = getCurrencySymbol(currency);
 
   return (
     <>
