@@ -49,21 +49,21 @@ export default function CategoryGroupsPage() {
 
       setUserId(user.id);
 
-      // Get user's level from profiles table
-const userLevel = 'N5'
-setUserLevel(userLevel);
+      // Get selected level from localStorage (set by header)
+      const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
+      setUserLevel(selectedLevel);
 
-// Fetch all groups for this level and category
-const { data: questionsData, error: questionsError } = await supabase
-  .from("questions")
-  .select("group")
-  .eq("level", userLevel)
-  .eq("category", category);
-if (questionsError) {
-  console.error("Error fetching groups:", questionsError);
-  setLoading(false);
-  return;
-}
+      // Fetch all groups for this level and category
+      const { data: questionsData, error: questionsError } = await supabase
+        .from("questions")
+        .select("group")
+        .eq("level", selectedLevel)
+        .eq("category", category);
+      if (questionsError) {
+        console.error("Error fetching groups:", questionsError);
+        setLoading(false);
+        return;
+      }
       // Count questions per group
       const groupCounts: Record<string, number> = {};
       (questionsData || []).forEach((q) => {
@@ -76,7 +76,7 @@ if (questionsError) {
         .from("practice_sessions")
         .select("question_id, group_name")
         .eq("user_id", user.id)
-        .eq("level", level)
+        .eq("level", selectedLevel)
         .eq("category", category);
 
       // Count unique answered questions per group

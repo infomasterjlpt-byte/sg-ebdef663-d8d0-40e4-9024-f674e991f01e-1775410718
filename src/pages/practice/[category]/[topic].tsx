@@ -55,25 +55,15 @@ export default function PracticeQuestionsPage() {
 
       setUserId(user.id);
 
-      // Get user's level from profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single();
+      // Get selected level from localStorage (set by header)
+      const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
+      setUserLevel(selectedLevel);
 
-      if (profileError) {
-        console.error("Error fetching user profile:", profileError);
-      }
-
-      const level = profile?.level || "N5";
-      setUserLevel(level);
-
-      // Fetch questions for this group
+      // Fetch questions for this group with ORDER BY RANDOM()
       const { data, error } = await supabase
         .from("questions")
         .select("*")
-        .eq("level", level)
+        .eq("level", selectedLevel)
         .eq("category", category)
         .eq("group", decodeURIComponent(topic))
         .limit(20);

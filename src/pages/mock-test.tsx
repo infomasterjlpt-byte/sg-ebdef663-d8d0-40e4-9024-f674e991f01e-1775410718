@@ -68,17 +68,39 @@ export default function MockTest() {
 
     setUser(userData);
 
-    // Fetch mock test questions (60 total: 35% kanji, 35% grammar, 30% reading)
-    try {
-      const fetchedQuestions = await getMockTestQuestions(
-        userData?.target_level || "N5",
-        60
-      );
-      setQuestions(fetchedQuestions);
-      setAnswers(new Array(fetchedQuestions.length).fill(null));
-    } catch (error) {
-      console.error("Error loading questions:", error);
-    }
+    // Get selected level from localStorage (set by header)
+    const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
+
+    // Fetch questions for mock test (20 per category)
+    const [kanjiData, grammarData, readingData] = await Promise.all([
+      supabase
+        .from("questions")
+        .select("*")
+        .eq("level", selectedLevel)
+        .eq("category", "kanji")
+        .limit(20),
+      supabase
+        .from("questions")
+        .select("*")
+        .eq("level", selectedLevel)
+        .eq("category", "grammar")
+        .limit(20),
+      supabase
+        .from("questions")
+        .select("*")
+        .eq("level", selectedLevel)
+        .eq("category", "reading")
+        .limit(20),
+    ]);
+
+    const fetchedQuestions = [
+      ...(kanjiData?.data || []),
+      ...(grammarData?.data || []),
+      ...(readingData?.data || []),
+    ];
+
+    setQuestions(fetchedQuestions);
+    setAnswers(new Array(fetchedQuestions.length).fill(null));
 
     setLoading(false);
   }
