@@ -36,7 +36,7 @@ export default function N5KanjiGroupsPage() {
       // Fetch groups from questions table
       const { data: groupData, error: groupError } = await supabase
         .from("questions")
-        .select("group")
+       .select("group, level, category")
         .eq("level", "N5")
         .eq("category", "kanji");
 
@@ -45,11 +45,12 @@ export default function N5KanjiGroupsPage() {
         setLoading(false);
         return;
       }
+      console.log("Group data received:", groupData);
 
       // Group and count questions
       const groupMap: Record<string, number> = {};
       groupData?.forEach((item) => {
-        const groupName = item.group || "Ungrouped";
+       const groupName = (item as any).group || "Ungrouped";
         groupMap[groupName] = (groupMap[groupName] || 0) + 1;
       });
 
