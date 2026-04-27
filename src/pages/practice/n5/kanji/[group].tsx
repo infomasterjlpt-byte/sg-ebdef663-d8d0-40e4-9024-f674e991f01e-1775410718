@@ -63,8 +63,18 @@ export default function N5KanjiQuestionsPage() {
         return;
       }
 
+      // Format options from Json to string[] and shuffle questions
+      const formattedQuestions: Question[] = (questionData || []).map(q => ({
+        id: q.id,
+        question: q.question,
+        options: Array.isArray(q.options) ? (q.options as string[]) : [],
+        answer_index: q.answer_index,
+        explanation: q.explanation,
+        example_sentence: q.example_sentence
+      }));
+
       // Shuffle questions randomly
-      const shuffled = (questionData || []).sort(() => Math.random() - 0.5);
+      const shuffled = formattedQuestions.sort(() => Math.random() - 0.5);
       
       setQuestions(shuffled);
       setAnsweredQuestions(new Array(shuffled.length).fill(false));
