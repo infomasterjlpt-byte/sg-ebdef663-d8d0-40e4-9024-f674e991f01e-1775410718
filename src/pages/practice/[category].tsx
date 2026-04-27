@@ -50,17 +50,7 @@ export default function CategoryGroupsPage() {
       setUserId(user.id);
 
       // Get user's level from profiles table
-      const { data: profile, error: profileError } = await supabase
-        .from("profiles")
-        .select("level")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError) {
-        console.error("Error fetching user profile:", profileError);
-      }
-
-      const level = profile?.level || "N5";
+      const userLevel = 'N5'
       setUserLevel(level);
 
       // Fetch all groups for this level and category
