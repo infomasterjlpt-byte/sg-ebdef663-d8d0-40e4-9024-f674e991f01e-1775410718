@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -63,8 +63,13 @@ interface LevelChangeModalProps {
 }
 
 export function LevelChangeModal({ open, onOpenChange, currentLevel, userId, onLevelChanged }: LevelChangeModalProps) {
-  const [selectedLevel, setSelectedLevel] = useState(currentLevel);
+  const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setSelectedLevel(currentLevel);
+  }, [currentLevel]);
 
   const handleLevelChange = async () => {
     if (!selectedLevel || selectedLevel === currentLevel) {
