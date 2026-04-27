@@ -66,6 +66,36 @@ export function LevelChangeModal({ open, onOpenChange, currentLevel, userId, onL
   const [selectedLevel, setSelectedLevel] = useState(currentLevel);
   const [loading, setLoading] = useState(false);
 
+  const handleLevelChange = async () => {
+    if (!selectedLevel || selectedLevel === currentLevel) {
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      const { error } = await supabase
+        .from("users")
+        .update({ target_level: selectedLevel })
+        .eq("id", userId);
+
+      if (error) {
+        console.error("Error updating level:", error);
+        return;
+      }
+
+      // Update localStorage for global access
+      localStorage.setItem("selectedLevel", selectedLevel);
+
+      onLevelChanged();
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Error updating level:", error);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   async function handleConfirm() {
     if (selectedLevel === currentLevel) {
       onOpenChange(false);

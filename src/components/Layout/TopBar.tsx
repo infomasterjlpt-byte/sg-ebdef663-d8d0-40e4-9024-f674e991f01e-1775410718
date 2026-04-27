@@ -49,6 +49,11 @@ export function TopBar() {
       
       setUserProfile(userData);
       setIsPremium(userData?.is_premium || false);
+      
+      // Set selected level in localStorage for global access
+      if (userData?.target_level) {
+        localStorage.setItem("selectedLevel", userData.target_level);
+      }
     }
   }
 
