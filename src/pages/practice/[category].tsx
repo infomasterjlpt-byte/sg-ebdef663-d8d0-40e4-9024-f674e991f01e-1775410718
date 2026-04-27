@@ -51,7 +51,7 @@ export default function CategoryGroupsPage() {
 
       // Get user's level from profiles table
       const userLevel = 'N5'
-      setUserLevel(level);
+     setUserLevel(userLevel);
 
       // Fetch all groups for this level and category
       const { data: questionsData, error: questionsError } = await supabase
