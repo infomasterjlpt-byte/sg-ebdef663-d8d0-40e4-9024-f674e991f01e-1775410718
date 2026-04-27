@@ -54,7 +54,7 @@ export default function N5KanjiQuestionsPage() {
         .select("*")
         .eq("level", "N5")
         .eq("category", "kanji")
-        .eq("group", decodeURIComponent(group))
+        .eq('"group"', decodeURIComponent(group))
         .limit(20);
 
       if (error) {

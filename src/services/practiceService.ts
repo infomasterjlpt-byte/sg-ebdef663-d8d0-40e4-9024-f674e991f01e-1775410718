@@ -108,7 +108,7 @@ export const practiceService = {
         .select("*")
         .eq("level", level)
         .eq("type", category)
-        .eq("group", topic)
+        .eq('"group"', topic)
         .limit(limit);
 
       if (error) {
@@ -176,7 +176,7 @@ export const practiceService = {
         .select("id")
         .eq("level", level)
         .eq("type", category)
-        .eq("group", topic);
+        .eq('"group"', topic);
 
       if (questionsError) {
         console.error("Error fetching questions:", questionsError);
