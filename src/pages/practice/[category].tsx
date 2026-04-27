@@ -50,22 +50,20 @@ export default function CategoryGroupsPage() {
       setUserId(user.id);
 
       // Get user's level from profiles table
-      const userLevel = 'N5'
-     setUserLevel(userLevel);
+const userLevel = 'N5'
+setUserLevel(userLevel);
 
-      // Fetch all groups for this level and category
-      const { data: questionsData, error: questionsError } = await supabase
-        .from("questions")
-        .select("group")
-        .eq("level", level)
-        .eq("category", category);
-
-      if (questionsError) {
-        console.error("Error fetching groups:", questionsError);
-        setLoading(false);
-        return;
-      }
-
+// Fetch all groups for this level and category
+const { data: questionsData, error: questionsError } = await supabase
+  .from("questions")
+  .select("group")
+  .eq("level", userLevel)
+  .eq("category", category);
+if (questionsError) {
+  console.error("Error fetching groups:", questionsError);
+  setLoading(false);
+  return;
+}
       // Count questions per group
       const groupCounts: Record<string, number> = {};
       (questionsData || []).forEach((q) => {
