@@ -283,7 +283,18 @@ export default function PracticeQuestionsPage() {
         </div>
 
         <Card className="p-8">
-          {currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
+          {/* Reading Passage (for reading category) */}
+          {category === "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+              <p className="text-sm font-medium text-gray-500 mb-2">Passage:</p>
+              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">
+                {currentQuestion.example_sentence}
+              </p>
+            </div>
+          )}
+
+          {/* Example Sentence (for kanji and grammar) */}
+          {category !== "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
               <p className="text-base text-gray-700">{currentQuestion.example_sentence}</p>
             </div>
