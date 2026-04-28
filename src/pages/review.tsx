@@ -36,6 +36,16 @@ export default function Review() {
 
   useEffect(() => {
     loadUserAndReviewQuestions();
+
+    // Listen for level changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "selectedLevel") {
+        loadUserAndReviewQuestions();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   async function loadUserAndReviewQuestions() {
@@ -55,14 +65,49 @@ export default function Review() {
 
     setUser(userData);
 
-    // Fetch review questions
-    try {
-      const reviewQuestions = await getReviewQuestions(authUser.id, 20);
-      setQuestions(reviewQuestions);
-    } catch (error) {
-      console.error("Error loading review questions:", error);
+    // Get selected level from localStorage (set by header)
+    const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
+
+    // Fetch review items for the user at their selected level
+    const { data: reviewData, error: reviewError } = await supabase
+      .from("practice_sessions")
+      .select("question_id")
+      .eq("user_id", authUser.id)
+      .eq("level", selectedLevel)
+      .eq("is_correct", false)
+      .order("answered_at", { ascending: false })
+      .limit(50);
+
+    if (reviewError) {
+      console.error("Error fetching review data:", reviewError);
+      setLoading(false);
+      return;
     }
 
+    if (!reviewData || reviewData.length === 0) {
+      setQuestions([]);
+      setLoading(false);
+      return;
+    }
+
+    // Get unique question IDs
+    const questionIds = Array.from(new Set(reviewData.map(r => r.question_id)));
+
+    // Fetch the actual questions
+    const { data: questionsData, error: questionsError } = await supabase
+      .from("questions")
+      .select("*")
+      .in("id", questionIds)
+      .eq("level", selectedLevel)
+      .limit(20);
+
+    if (questionsError) {
+      console.error("Error fetching questions:", questionsError);
+      setLoading(false);
+      return;
+    }
+
+    setQuestions(questionsData || []);
     setLoading(false);
   }
 

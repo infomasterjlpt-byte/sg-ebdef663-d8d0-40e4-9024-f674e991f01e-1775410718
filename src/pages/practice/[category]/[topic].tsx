@@ -74,18 +74,9 @@ export default function PracticeQuestionsPage() {
         return;
       }
 
-      // Format questions and shuffle
-      const formattedQuestions: Question[] = (data || []).map(q => ({
-        id: q.id,
-        question: q.question,
-        options: Array.isArray(q.options) ? (q.options as string[]) : [],
-        answer_index: q.answer_index,
-        explanation: q.explanation,
-        example_sentence: q.example_sentence
-      }));
+      // Shuffle questions client-side for better randomization
+      const shuffled = (data || []).sort(() => Math.random() - 0.5);
 
-      const shuffled = formattedQuestions.sort(() => Math.random() - 0.5);
-      
       setQuestions(shuffled);
       setAnsweredQuestions(new Array(shuffled.length).fill(false));
       setCorrectAnswers(new Array(shuffled.length).fill(false));
@@ -93,6 +84,16 @@ export default function PracticeQuestionsPage() {
     };
 
     loadQuestions();
+
+    // Listen for level changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "selectedLevel") {
+        loadQuestions();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [category, topic, router]);
 
   const currentQuestion = questions[currentIndex];

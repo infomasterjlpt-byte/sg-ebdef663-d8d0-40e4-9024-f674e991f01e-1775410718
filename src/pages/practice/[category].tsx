@@ -59,47 +59,57 @@ export default function CategoryGroupsPage() {
         .select("group")
         .eq("level", selectedLevel)
         .eq("category", category);
+
       if (questionsError) {
-        console.error("Error fetching groups:", questionsError);
+        console.error("Error fetching questions:", questionsError);
         setLoading(false);
         return;
       }
+
       // Count questions per group
-      const groupCounts: Record<string, number> = {};
-      (questionsData || []).forEach((q) => {
+      const groupCounts: { [key: string]: number } = {};
+      questionsData?.forEach((q: any) => {
         const groupName = q.group || "Ungrouped";
         groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
       });
 
-      // Get user's answered questions for progress
-      const { data: sessionsData } = await supabase
-        .from("practice_sessions")
-        .select("question_id, group_name")
-        .eq("user_id", user.id)
-        .eq("level", selectedLevel)
-        .eq("category", category);
+      // Fetch progress for each group
+      const groupsWithProgress = await Promise.all(
+        Object.entries(groupCounts).map(async ([groupName, total]) => {
+          const { data: progressData } = await supabase
+            .from("practice_sessions")
+            .select("question_id")
+            .eq("user_id", user.id)
+            .eq("level", selectedLevel)
+            .eq("category", category)
+            .eq("group_name", groupName)
+            .eq("is_correct", true);
 
-      // Count unique answered questions per group
-      const answeredCounts: Record<string, Set<string>> = {};
-      (sessionsData || []).forEach((s) => {
-        if (!answeredCounts[s.group_name]) {
-          answeredCounts[s.group_name] = new Set();
-        }
-        answeredCounts[s.group_name].add(s.question_id);
-      });
+          const uniqueAnswered = new Set(progressData?.map(p => p.question_id) || []);
 
-      // Build groups array
-      const groupsArray: GroupData[] = Object.entries(groupCounts).map(([groupName, total]) => ({
-        group: groupName,
-        total,
-        answered: answeredCounts[groupName]?.size || 0
-      })).sort((a, b) => a.group.localeCompare(b.group));
+          return {
+            name: groupName,
+            total,
+            answered: uniqueAnswered.size
+          };
+        })
+      );
 
-      setGroups(groupsArray);
+      setGroups(groupsWithProgress.sort((a, b) => a.name.localeCompare(b.name)));
       setLoading(false);
     };
 
     loadGroups();
+
+    // Listen for level changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "selectedLevel") {
+        loadGroups();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, [category, router]);
 
   if (loading) {

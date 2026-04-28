@@ -40,6 +40,16 @@ export default function MockTest() {
 
   useEffect(() => {
     loadUserAndQuestions();
+
+    // Listen for level changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === "selectedLevel") {
+        loadUserAndQuestions();
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   useEffect(() => {
@@ -99,8 +109,11 @@ export default function MockTest() {
       ...(readingData?.data || []),
     ];
 
-    setQuestions(fetchedQuestions);
-    setAnswers(new Array(fetchedQuestions.length).fill(null));
+    // Shuffle all questions
+    const shuffled = fetchedQuestions.sort(() => Math.random() - 0.5);
+
+    setQuestions(shuffled);
+    setAnswers(new Array(shuffled.length).fill(null));
 
     setLoading(false);
   }
