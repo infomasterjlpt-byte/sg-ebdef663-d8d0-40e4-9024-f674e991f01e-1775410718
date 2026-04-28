@@ -15,6 +15,7 @@ import {
   saveQuestionResult,
   type Question,
 } from "@/services/questionService";
+import { useLevel } from "@/contexts/LevelContext";
 
 const LEVEL_COLORS: { [key: string]: string } = {
   N5: "#22c55e",
@@ -26,6 +27,7 @@ const LEVEL_COLORS: { [key: string]: string } = {
 
 export default function Review() {
   const router = useRouter();
+  const { level } = useLevel();
   const [user, setUser] = useState<any>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
