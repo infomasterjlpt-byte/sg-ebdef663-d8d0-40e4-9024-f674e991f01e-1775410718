@@ -8,15 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { authService } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Check, X } from "lucide-react";
-
-const categoryNames: Record<string, string> = {
-  kanji: "Kanji",
-  grammar: "Grammar",
-  reading: "Reading"
-};
-
-const optionLabels = ["A", "B", "C", "D"];
+import { Check, X } from "lucide-react";
+import { useLevel } from "@/contexts/LevelContext";
 
 interface Question {
   id: string;
@@ -27,9 +20,16 @@ interface Question {
   example_sentence: string | null;
 }
 
-export default function PracticeQuestionsPage() {
+const categoryInfo: Record<string, { icon: string; title: string }> = {
+  kanji: { icon: "漢字", title: "Kanji" },
+  grammar: { icon: "文法", title: "Grammar" },
+  reading: { icon: "読解", title: "Reading" }
+};
+
+export default function TopicPage() {
   const router = useRouter();
   const { category, topic } = router.query;
+  const { level } = useLevel();
   
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -37,80 +37,75 @@ export default function PracticeQuestionsPage() {
   const [answeredQuestions, setAnsweredQuestions] = useState<boolean[]>([]);
   const [correctAnswers, setCorrectAnswers] = useState<boolean[]>([]);
   const [showResults, setShowResults] = useState(false);
-  
-  const [userLevel, setUserLevel] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadQuestions = async () => {
-      if (!category || !topic || typeof category !== "string" || typeof topic !== "string") return;
+    if (category && topic && typeof category === "string" && typeof topic === "string") {
+      console.log("📚 Fetching questions for:", { level, category, topic });
+      loadQuestions();
+    }
+  }, [category, topic, level]); // Re-fetch when level changes
 
-      const user = await authService.getCurrentUser();
-      
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
+  async function loadQuestions() {
+    if (!category || !topic || typeof category !== "string" || typeof topic !== "string") return;
 
-      setUserId(user.id);
+    setLoading(true);
+    setQuestions([]); // Clear previous data
+    setCurrentIndex(0);
+    setSelectedAnswer(null);
+    setShowResults(false);
 
-      // Get selected level from localStorage (set by header)
-      const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
-      setUserLevel(selectedLevel);
+    const user = await authService.getCurrentUser();
+    
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
 
-      // Fetch questions for this group with ORDER BY RANDOM()
-      const { data, error } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("level", selectedLevel)
-        .eq("category", category)
-        .eq("group", decodeURIComponent(topic))
-        .limit(20);
+    setUserId(user.id);
 
-      if (error) {
-        console.error("Error fetching questions:", error);
-        setLoading(false);
-        return;
-      }
+    console.log("🔍 Querying questions table with:", { level, category, topic: decodeURIComponent(topic) });
 
-      // Shuffle questions client-side for better randomization
-      const shuffled = (data || []).sort(() => Math.random() - 0.5);
+    // Fetch questions for this group
+    const { data, error } = await supabase
+      .from("questions")
+      .select("*")
+      .eq("level", level)
+      .eq("category", category)
+      .eq("group", decodeURIComponent(topic))
+      .limit(20);
 
-      // Format questions with proper types
-      const formattedQuestions: Question[] = shuffled.map(q => ({
-        id: q.id,
-        question: q.question,
-        options: Array.isArray(q.options) ? (q.options as string[]) : [],
-        answer_index: q.answer_index,
-        explanation: q.explanation,
-        example_sentence: q.example_sentence
-      }));
-
-      setQuestions(formattedQuestions);
-      setAnsweredQuestions(new Array(formattedQuestions.length).fill(false));
-      setCorrectAnswers(new Array(formattedQuestions.length).fill(false));
+    if (error) {
+      console.error("Error fetching questions:", error);
       setLoading(false);
-    };
+      return;
+    }
 
-    loadQuestions();
+    console.log("📦 Found questions:", data?.length || 0);
 
-    // Listen for level changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "selectedLevel") {
-        loadQuestions();
-      }
-    };
+    // Shuffle questions client-side for better randomization
+    const shuffled = (data || []).sort(() => Math.random() - 0.5);
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [category, topic, router]);
+    // Format questions with proper types
+    const formattedQuestions: Question[] = shuffled.map(q => ({
+      id: q.id,
+      question: q.question,
+      options: Array.isArray(q.options) ? (q.options as string[]) : [],
+      answer_index: q.answer_index,
+      explanation: q.explanation,
+      example_sentence: q.example_sentence
+    }));
 
-  const currentQuestion = questions[currentIndex];
-  const hasAnswered = answeredQuestions[currentIndex];
+    setQuestions(formattedQuestions);
+    setAnsweredQuestions(new Array(formattedQuestions.length).fill(false));
+    setCorrectAnswers(new Array(formattedQuestions.length).fill(false));
+    setLoading(false);
+  }
 
   const handleAnswerSelect = async (answerIndex: number) => {
-    if (hasAnswered) return;
+    const currentQuestion = questions[currentIndex];
+    if (answeredQuestions[currentIndex]) return;
 
     setSelectedAnswer(answerIndex);
     const correct = answerIndex === currentQuestion.answer_index;
@@ -123,11 +118,10 @@ export default function PracticeQuestionsPage() {
     newCorrect[currentIndex] = correct;
     setCorrectAnswers(newCorrect);
 
-    // Save to practice_sessions
-    if (userId && userLevel && category && topic) {
+    if (userId && topic) {
       await supabase.from("practice_sessions").insert({
         user_id: userId,
-        level: userLevel,
+        level: level,
         category: category as string,
         group_name: decodeURIComponent(topic as string),
         question_id: currentQuestion.id,
@@ -147,11 +141,7 @@ export default function PracticeQuestionsPage() {
   };
 
   const handlePracticeAgain = () => {
-    setCurrentIndex(0);
-    setSelectedAnswer(null);
-    setAnsweredQuestions(new Array(questions.length).fill(false));
-    setCorrectAnswers(new Array(questions.length).fill(false));
-    setShowResults(false);
+    loadQuestions(); // This will re-shuffle and reset everything
   };
 
   if (loading) {
@@ -168,22 +158,24 @@ export default function PracticeQuestionsPage() {
   }
 
   if (questions.length === 0) {
-    const groupName = topic ? decodeURIComponent(topic as string) : "";
+    const topicName = topic ? decodeURIComponent(topic as string) : "";
+    const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
+
     return (
       <AppLayout>
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
           <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="/practice" className="hover:text-foreground">Practice</Link>
             <span>/</span>
-            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryNames[category as string]}</Link>
+            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
             <span>/</span>
-            <span className="text-foreground font-medium">{groupName}</span>
+            <span className="text-foreground font-medium">{topicName}</span>
           </div>
-          
+
           <Card className="p-8 text-center">
             <h3 className="text-lg font-semibold mb-2">No questions available</h3>
             <p className="text-muted-foreground mb-4">
-              There are no questions available for this group yet.
+              There are no questions for this group at {level} level yet.
             </p>
             <Link href={`/practice/${category}`}>
               <Button>Back to Groups</Button>
@@ -194,8 +186,10 @@ export default function PracticeQuestionsPage() {
     );
   }
 
-  const categoryName = category ? categoryNames[category as string] || category : "";
-  const groupName = topic ? decodeURIComponent(topic as string) : "";
+  const topicName = topic ? decodeURIComponent(topic as string) : "";
+  const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
+  const currentQuestion = questions[currentIndex];
+  const hasAnswered = answeredQuestions[currentIndex];
   const score = correctAnswers.filter(Boolean).length;
   const percentage = Math.round((score / questions.length) * 100);
 
@@ -207,7 +201,7 @@ export default function PracticeQuestionsPage() {
     return (
       <AppLayout>
         <SEO 
-          title={`Results - ${categoryName} Practice - Master JLPT`}
+          title={`Results - ${topicName} - ${categoryData.title} Practice`}
           description="Practice session results"
         />
         
@@ -215,9 +209,9 @@ export default function PracticeQuestionsPage() {
           <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
             <Link href="/practice" className="hover:text-foreground">Practice</Link>
             <span>/</span>
-            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryName}</Link>
+            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
             <span>/</span>
-            <span className="text-foreground font-medium">{groupName}</span>
+            <span className="text-foreground font-medium">{topicName}</span>
           </div>
 
           <Card className="p-8">
@@ -244,7 +238,7 @@ export default function PracticeQuestionsPage() {
                   Practice Again
                 </Button>
                 <Link href={`/practice/${category}`}>
-                  <Button variant="outline" size="lg">Choose Another Group</Button>
+                  <Button variant="outline" size="lg">Back to Groups</Button>
                 </Link>
               </div>
             </div>
@@ -255,30 +249,22 @@ export default function PracticeQuestionsPage() {
   }
 
   const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
+  const optionLabels = ["A", "B", "C", "D"];
 
   return (
     <AppLayout>
       <SEO 
-        title={`${groupName} - ${categoryName} Practice - Master JLPT`}
-        description={`Practice ${categoryName} questions for ${groupName}`}
+        title={`${topicName} - ${categoryData.title} Practice`}
+        description={`Practice ${categoryData.title} questions for ${topicName}`}
       />
       
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/practice" className="hover:text-foreground">Practice</Link>
           <span>/</span>
-          <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryName}</Link>
+          <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
           <span>/</span>
-          <span className="text-foreground font-medium">{groupName}</span>
-        </div>
-
-        <div className="mb-6">
-          <Link href={`/practice/${category}`}>
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
+          <span className="text-foreground font-medium">{topicName}</span>
         </div>
 
         <div className="mb-8">

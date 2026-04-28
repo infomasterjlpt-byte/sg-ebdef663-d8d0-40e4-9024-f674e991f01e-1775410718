@@ -8,19 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { authService } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, BookOpen } from "lucide-react";
-
-const categoryNames: Record<string, string> = {
-  kanji: "Kanji",
-  grammar: "Grammar",
-  reading: "Reading"
-};
-
-const categoryIcons: Record<string, string> = {
-  kanji: "漢字",
-  grammar: "文法",
-  reading: "読解"
-};
+import { useLevel } from "@/contexts/LevelContext";
 
 interface GroupData {
   group: string;
@@ -28,89 +16,92 @@ interface GroupData {
   answered: number;
 }
 
-export default function CategoryGroupsPage() {
+const categoryInfo: Record<string, { icon: string; title: string }> = {
+  kanji: { icon: "漢字", title: "Kanji" },
+  grammar: { icon: "文法", title: "Grammar" },
+  reading: { icon: "読解", title: "Reading" }
+};
+
+export default function CategoryPage() {
   const router = useRouter();
   const { category } = router.query;
+  const { level } = useLevel();
+  
   const [groups, setGroups] = useState<GroupData[]>([]);
-  const [userLevel, setUserLevel] = useState<string | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadGroups = async () => {
-      if (!category || typeof category !== "string") return;
+    if (category && typeof category === "string") {
+      console.log("📊 Fetching groups for:", { level, category });
+      loadGroups();
+    }
+  }, [category, level]); // Re-fetch when level changes
 
-      const user = await authService.getCurrentUser();
-      
-      if (!user) {
-        router.push("/auth/login");
-        return;
-      }
+  async function loadGroups() {
+    if (!category || typeof category !== "string") return;
 
-      setUserId(user.id);
+    setLoading(true);
+    setGroups([]); // Clear previous data
 
-      // Get selected level from localStorage (set by header)
-      const selectedLevel = localStorage.getItem("selectedLevel") || "N5";
-      setUserLevel(selectedLevel);
+    const user = await authService.getCurrentUser();
+    
+    if (!user) {
+      router.push("/auth/login");
+      return;
+    }
 
-      // Fetch all groups for this level and category
-      const { data: questionsData, error: questionsError } = await supabase
-        .from("questions")
-        .select("group")
-        .eq("level", selectedLevel)
-        .eq("category", category);
+    setUserId(user.id);
 
-      if (questionsError) {
-        console.error("Error fetching questions:", questionsError);
-        setLoading(false);
-        return;
-      }
+    console.log("🔍 Querying questions table with:", { level, category });
 
-      // Count questions per group
-      const groupCounts: { [key: string]: number } = {};
-      questionsData?.forEach((q: any) => {
-        const groupName = q.group || "Ungrouped";
-        groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
-      });
+    // Fetch all groups for this level and category
+    const { data: questionsData, error: questionsError } = await supabase
+      .from("questions")
+      .select("group")
+      .eq("level", level)
+      .eq("category", category);
 
-      // Fetch progress for each group
-      const groupsWithProgress = await Promise.all(
-        Object.entries(groupCounts).map(async ([groupName, total]) => {
-          const { data: progressData } = await supabase
-            .from("practice_sessions")
-            .select("question_id")
-            .eq("user_id", user.id)
-            .eq("level", selectedLevel)
-            .eq("category", category)
-            .eq("group_name", groupName)
-            .eq("is_correct", true);
-
-          const uniqueAnswered = new Set(progressData?.map(p => p.question_id) || []);
-
-          return {
-            group: groupName,
-            total,
-            answered: uniqueAnswered.size
-          };
-        })
-      );
-
-      setGroups(groupsWithProgress.sort((a, b) => a.group.localeCompare(b.group)));
+    if (questionsError) {
+      console.error("Error fetching questions:", questionsError);
       setLoading(false);
-    };
+      return;
+    }
 
-    loadGroups();
+    console.log("📦 Found questions:", questionsData?.length || 0);
 
-    // Listen for level changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "selectedLevel") {
-        loadGroups();
-      }
-    };
+    // Count questions per group
+    const groupCounts: { [key: string]: number } = {};
+    questionsData?.forEach((q: any) => {
+      const groupName = q.group || "Ungrouped";
+      groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
+    });
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [category, router]);
+    // Fetch progress for each group
+    const groupsWithProgress = await Promise.all(
+      Object.entries(groupCounts).map(async ([groupName, total]) => {
+        const { data: progressData } = await supabase
+          .from("practice_sessions")
+          .select("question_id")
+          .eq("user_id", user.id)
+          .eq("level", level)
+          .eq("category", category)
+          .eq("group_name", groupName)
+          .eq("is_correct", true);
+
+        const uniqueAnswered = new Set(progressData?.map(p => p.question_id) || []);
+
+        return {
+          group: groupName,
+          total,
+          answered: uniqueAnswered.size
+        };
+      })
+    );
+
+    setGroups(groupsWithProgress.sort((a, b) => a.group.localeCompare(b.group)));
+    setLoading(false);
+  }
 
   if (loading) {
     return (
@@ -125,52 +116,41 @@ export default function CategoryGroupsPage() {
     );
   }
 
-  const categoryName = category ? categoryNames[category as string] || category : "";
-  const categoryIcon = category ? categoryIcons[category as string] || "" : "";
+  const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
 
   return (
     <AppLayout>
       <SEO 
-        title={`${categoryName} Practice - Master JLPT`}
-        description={`Practice ${categoryName} questions for JLPT ${userLevel}`}
+        title={`${categoryData.title} Practice - Master JLPT`}
+        description={`Practice ${categoryData.title} questions for JLPT ${level}`}
       />
       
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-6xl">
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href="/practice" className="hover:text-foreground">
-            Practice
-          </Link>
+          <Link href="/practice" className="hover:text-foreground">Practice</Link>
           <span>/</span>
-          <span className="text-foreground font-medium">{categoryName}</span>
+          <span className="text-foreground font-medium">{categoryData.title}</span>
         </div>
 
         <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Link href="/practice">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back
-              </Button>
-            </Link>
-          </div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-4xl">{categoryIcon}</span>
-            <h1 className="text-3xl font-bold">{categoryName}</h1>
+            <span className="text-4xl">{categoryData.icon}</span>
+            <h1 className="text-3xl font-bold">{categoryData.title} Practice</h1>
           </div>
-          {userLevel && (
-            <p className="text-lg text-muted-foreground">
-              Level: <span className="font-semibold text-foreground">{userLevel}</span>
-            </p>
-          )}
+          <p className="text-lg text-muted-foreground">
+            Choose a group to start practicing · Level: {level}
+          </p>
         </div>
 
         {groups.length === 0 ? (
           <Card className="p-8 text-center">
-            <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
             <h3 className="text-lg font-semibold mb-2">No groups available</h3>
-            <p className="text-muted-foreground">
-              There are no practice groups available for this category yet.
+            <p className="text-muted-foreground mb-4">
+              There are no {categoryData.title.toLowerCase()} questions for {level} yet.
             </p>
+            <Link href="/practice">
+              <Button>Back to Practice</Button>
+            </Link>
           </Card>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
