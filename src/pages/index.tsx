@@ -19,7 +19,7 @@ export default function Home() {
 
   const reviews = [
     {
-      name: "Rahul M.",
+      name: "Tanvir M.",
       flag: "🇧🇩",
       stars: 5,
       level: "N5",
@@ -616,6 +616,221 @@ export default function Home() {
           <div className="text-center mt-8">
             <p className="text-[#888888] text-[13px]">
               ★★★★★ Average 4.9 out of 5 from our learners
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section className="py-20 bg-[#f8f8f8]">
+        <div className="container mx-auto px-6">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4">
+              Simple, honest pricing
+            </h2>
+            <p className="text-lg text-gray-600">
+              Start free. Upgrade when you are ready.
+            </p>
+          </div>
+
+          {/* Pricing Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Free Plan */}
+            <div
+              className="bg-white rounded-2xl border border-[#e5e5e5] p-8 flex flex-col transition-transform duration-300 hover:-translate-y-1"
+              style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.06)" }}
+            >
+              <div className="mb-6">
+                <p className="text-gray-500 text-sm font-semibold uppercase tracking-wide mb-3">
+                  FREE
+                </p>
+                <div className="mb-2">
+                  <span className="text-5xl font-bold text-black">{symbol}0</span>
+                  <span className="text-gray-600 text-lg">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm">Start learning for free</p>
+              </div>
+
+              <div className="flex-grow mb-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">N5 Practice Questions</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Kanji Grammar & Reading</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Track your progress</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Group by topic practice</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-gray-400 text-xl mt-0.5 flex-shrink-0">×</span>
+                  <span className="text-gray-400 text-sm">All levels N5 to N2</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-gray-400 text-xl mt-0.5 flex-shrink-0">×</span>
+                  <span className="text-gray-400 text-sm">Unlimited questions</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-gray-400 text-xl mt-0.5 flex-shrink-0">×</span>
+                  <span className="text-gray-400 text-sm">Full mock tests</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <span className="text-gray-400 text-xl mt-0.5 flex-shrink-0">×</span>
+                  <span className="text-gray-400 text-sm">Review system</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full border-[1.5px] border-[#cccccc] text-black hover:bg-gray-50 font-semibold"
+                asChild
+              >
+                <Link href="/auth/signup">Get Started</Link>
+              </Button>
+            </div>
+
+            {/* Monthly Plan - MOST POPULAR */}
+            <div
+              className="bg-white rounded-2xl border-2 border-[#cc1f1f] p-8 flex flex-col relative transition-transform duration-300 hover:-translate-y-1"
+              style={{ boxShadow: "0 4px 24px rgba(204,31,31,0.12)" }}
+            >
+              {/* Most Popular Badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-[#cc1f1f] text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                  MOST POPULAR
+                </span>
+              </div>
+
+              <div className="mb-6 mt-2">
+                <p className="text-[#cc1f1f] text-sm font-semibold uppercase tracking-wide mb-3">
+                  MONTHLY
+                </p>
+                <div className="mb-2">
+                  <span className="text-5xl font-bold text-black">{symbol}499</span>
+                  <span className="text-gray-600 text-lg">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm">Billed monthly · cancel anytime</p>
+              </div>
+
+              <div className="flex-grow mb-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Everything in Free</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">All levels N5 to N2</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Unlimited practice questions</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Full mock tests</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Review system</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Priority support</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#cc1f1f] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Cancel anytime</span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white font-semibold"
+                asChild
+              >
+                <Link href="https://buy.stripe.com/14A8wO68q89g1s48rC" target="_blank">
+                  Get Monthly Access
+                </Link>
+              </Button>
+            </div>
+
+            {/* 6 Months Plan - BEST VALUE */}
+            <div
+              className="bg-white rounded-2xl border-2 border-[#f59e0b] p-8 flex flex-col relative transition-transform duration-300 hover:-translate-y-1"
+              style={{ boxShadow: "0 4px 24px rgba(245,158,11,0.1)" }}
+            >
+              {/* Best Value Badge */}
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2">
+                <span className="bg-[#f59e0b] text-white text-xs font-bold px-4 py-1.5 rounded-full">
+                  BEST VALUE
+                </span>
+              </div>
+
+              <div className="mb-6 mt-2">
+                <p className="text-[#f59e0b] text-sm font-semibold uppercase tracking-wide mb-3">
+                  6 MONTHS
+                </p>
+                <div className="mb-2">
+                  <span className="text-5xl font-bold text-black">{symbol}2,499</span>
+                  <span className="text-gray-600 text-lg">/6 months</span>
+                </div>
+                <div className="inline-block bg-[#fff8e6] text-[#d97706] text-xs font-semibold px-3 py-1 rounded-full mb-2">
+                  Save {symbol}495 vs monthly
+                </div>
+              </div>
+
+              <div className="flex-grow mb-6 space-y-3">
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Everything in Free</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">All levels N5 to N2</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Unlimited practice questions</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Full mock tests</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Review system</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">Priority support</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-[#f59e0b] mt-0.5 flex-shrink-0" />
+                  <span className="text-gray-700 text-sm">6 months at lower price</span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-[#f59e0b] hover:bg-[#e08e0a] text-black font-semibold"
+                asChild
+              >
+                <Link href="https://buy.stripe.com/aFa00i7cuaho2w86ju" target="_blank">
+                  Get 6 Months Access
+                </Link>
+              </Button>
+            </div>
+          </div>
+
+          {/* Footer Text */}
+          <div className="text-center mt-12">
+            <p className="text-gray-500 text-[13px]">
+              Secure payment via Stripe · Cancel anytime · No hidden fees
             </p>
           </div>
         </div>
