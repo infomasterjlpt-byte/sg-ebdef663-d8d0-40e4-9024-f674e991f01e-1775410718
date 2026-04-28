@@ -1,14 +1,16 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
-import { ThemeProvider } from "@/contexts/ThemeProvider";
+import { Toaster } from "@/components/ui/toaster";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { LevelProvider } from "@/contexts/LevelContext";
 
 export default function App({ Component, pageProps }: AppProps) {
   return (
-    <ThemeProvider>
+    <CurrencyProvider>
       <LevelProvider>
         <Component {...pageProps} />
+        <Toaster />
       </LevelProvider>
-    </ThemeProvider>
+    </CurrencyProvider>
   );
 }
