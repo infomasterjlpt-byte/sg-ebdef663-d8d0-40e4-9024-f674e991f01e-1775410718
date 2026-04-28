@@ -88,14 +88,14 @@ export default function CategoryGroupsPage() {
           const uniqueAnswered = new Set(progressData?.map(p => p.question_id) || []);
 
           return {
-            name: groupName,
+            group: groupName,
             total,
             answered: uniqueAnswered.size
           };
         })
       );
 
-      setGroups(groupsWithProgress.sort((a, b) => a.name.localeCompare(b.name)));
+      setGroups(groupsWithProgress.sort((a, b) => a.group.localeCompare(b.group)));
       setLoading(false);
     };
 
@@ -173,35 +173,48 @@ export default function CategoryGroupsPage() {
             </p>
           </Card>
         ) : (
-          <div className="space-y-4">
-            {groups.map((group, index) => {
-              const progress = group.total > 0 ? (group.answered / group.total) * 100 : 0;
-              
-              return (
-                <Card key={index} className="p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold mb-2">{group.group}</h3>
-                      <div className="flex items-center gap-4 mb-2">
-                        <span className="text-sm text-muted-foreground">
-                          {group.total} questions
-                        </span>
-                        <span className="text-sm text-muted-foreground">
-                          {group.answered} / {group.total} answered
-                        </span>
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {groups.map((group) => (
+              <Link
+                key={group.group}
+                href={`/practice/${category}/${encodeURIComponent(group.group)}`}
+                className="block group"
+              >
+                <Card className="h-full p-6 bg-white border border-gray-200 hover:shadow-lg transition-shadow cursor-pointer">
+                  <div className="flex flex-col h-full">
+                    <h3 className="text-xl font-bold mb-2">{group.group}</h3>
                     
-                    <Link href={`/practice/${category}/${encodeURIComponent(group.group)}`}>
-                      <Button className="bg-red-600 hover:bg-red-700 text-white">
-                        Start
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <span>{group.total} questions</span>
+                      {group.answered > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="text-primary font-medium">
+                            {group.answered} answered
+                          </span>
+                        </>
+                      )}
+                    </div>
+
+                    {group.answered > 0 && (
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress</span>
+                          <span>{Math.round((group.answered / group.total) * 100)}%</span>
+                        </div>
+                        <Progress value={(group.answered / group.total) * 100} className="h-2" />
+                      </div>
+                    )}
+
+                    <div className="mt-auto">
+                      <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
+                        Start Practice
                       </Button>
-                    </Link>
+                    </div>
                   </div>
                 </Card>
-              );
-            })}
+              </Link>
+            ))}
           </div>
         )}
       </div>

@@ -77,9 +77,19 @@ export default function PracticeQuestionsPage() {
       // Shuffle questions client-side for better randomization
       const shuffled = (data || []).sort(() => Math.random() - 0.5);
 
-      setQuestions(shuffled);
-      setAnsweredQuestions(new Array(shuffled.length).fill(false));
-      setCorrectAnswers(new Array(shuffled.length).fill(false));
+      // Format questions with proper types
+      const formattedQuestions: Question[] = shuffled.map(q => ({
+        id: q.id,
+        question: q.question,
+        options: Array.isArray(q.options) ? (q.options as string[]) : [],
+        answer_index: q.answer_index,
+        explanation: q.explanation,
+        example_sentence: q.example_sentence
+      }));
+
+      setQuestions(formattedQuestions);
+      setAnsweredQuestions(new Array(formattedQuestions.length).fill(false));
+      setCorrectAnswers(new Array(formattedQuestions.length).fill(false));
       setLoading(false);
     };
 
