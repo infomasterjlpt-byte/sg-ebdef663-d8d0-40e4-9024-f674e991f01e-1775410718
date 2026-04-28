@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Moon, Sun, LogOut, Globe } from "lucide-react";
+import { LogOut, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -20,7 +20,6 @@ const LEVEL_COLORS: { [key: string]: string } = {
 
 export function TopBar() {
   const router = useRouter();
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isPremium, setIsPremium] = useState(false);
@@ -28,12 +27,6 @@ export function TopBar() {
   const { currency, setCurrency } = useCurrency();
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.toggle("dark", savedTheme === "dark");
-    }
-
     loadUserData();
   }, []);
 
@@ -56,13 +49,6 @@ export function TopBar() {
       }
     }
   }
-
-  const toggleTheme = () => {
-    const newTheme = theme === "light" ? "dark" : "light";
-    setTheme(newTheme);
-    localStorage.setItem("theme", newTheme);
-    document.documentElement.classList.toggle("dark", newTheme === "dark");
-  };
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
@@ -106,22 +92,9 @@ export function TopBar() {
                   <SelectItem value="NPR">₨ NPR</SelectItem>
                   <SelectItem value="INR">₹ INR</SelectItem>
                   <SelectItem value="VND">₫ VND</SelectItem>
-                  <SelectItem value="LKR">રු LKR</SelectItem>
+                  <SelectItem value="LKR">රු LKR</SelectItem>
                 </SelectContent>
               </Select>
-
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="rounded-full"
-              >
-                {theme === "light" ? (
-                  <Moon className="h-5 w-5" />
-                ) : (
-                  <Sun className="h-5 w-5" />
-                )}
-              </Button>
 
               {isPremium && (
                 <Badge className="bg-primary text-primary-foreground">Premium</Badge>
