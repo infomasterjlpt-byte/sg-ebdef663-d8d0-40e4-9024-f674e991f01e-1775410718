@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useLevel } from "@/contexts/LevelContext";
+import { Check } from "lucide-react";
 
 interface LevelChangeModalProps {
   open: boolean;
@@ -17,6 +18,22 @@ interface LevelChangeModalProps {
   userId: string;
   onLevelChanged: () => void;
 }
+
+const levelColors: Record<string, string> = {
+  N5: "bg-green-500",
+  N4: "bg-teal-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-900"
+};
+
+const levels = [
+  { value: "N5", label: "N5", difficulty: "Beginner" },
+  { value: "N4", label: "N4", difficulty: "Elementary" },
+  { value: "N3", label: "N3", difficulty: "Intermediate" },
+  { value: "N2", label: "N2", difficulty: "Upper Intermediate" },
+  { value: "N1", label: "N1", difficulty: "Advanced" },
+];
 
 export function LevelChangeModal({
   open,
@@ -32,14 +49,6 @@ export function LevelChangeModal({
   useEffect(() => {
     setSelectedLevel(currentLevel);
   }, [currentLevel]);
-
-  const levels = [
-    { value: "N5", label: "N5 - Beginner", description: "Basic vocabulary and grammar" },
-    { value: "N4", label: "N4 - Elementary", description: "Everyday conversations" },
-    { value: "N3", label: "N3 - Intermediate", description: "Written and spoken Japanese" },
-    { value: "N2", label: "N2 - Pre-Advanced", description: "Newspapers and conversations" },
-    { value: "N1", label: "N1 - Advanced", description: "Complex topics and native materials" },
-  ];
 
   const handleLevelChange = async () => {
     if (!selectedLevel || selectedLevel === currentLevel) {
@@ -73,29 +82,44 @@ export function LevelChangeModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
-          <DialogTitle>Change Target Level</DialogTitle>
+          <DialogTitle>Change Your Level</DialogTitle>
           <DialogDescription>
             Select your target JLPT level. This will update your practice questions and progress tracking.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 py-4">
-          {levels.map((level) => (
-            <button
-              key={level.value}
-              onClick={() => setSelectedLevel(level.value)}
-              className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                selectedLevel === level.value
-                  ? "border-primary bg-primary/5"
-                  : "border-gray-200 hover:border-primary/50"
-              }`}
-            >
-              <div className="font-semibold mb-1">{level.label}</div>
-              <div className="text-sm text-muted-foreground">{level.description}</div>
-            </button>
-          ))}
+        <div className="py-6">
+          <div className="grid grid-cols-5 gap-4">
+            {levels.map((level) => (
+              <button
+                key={level.value}
+                onClick={() => setSelectedLevel(level.value)}
+                className={`relative p-5 text-center rounded-xl border transition-all hover:bg-gray-50 ${
+                  selectedLevel === level.value
+                    ? "border-[#cc1f1f] border-2"
+                    : "border-gray-200"
+                }`}
+              >
+                {selectedLevel === level.value && (
+                  <div className="absolute top-2 right-2">
+                    <Check className="h-5 w-5 text-[#cc1f1f]" />
+                  </div>
+                )}
+                
+                <div className="flex flex-col items-center gap-3">
+                  <div className={`w-16 h-16 rounded-full ${levelColors[level.value]} flex items-center justify-center text-white text-2xl font-bold`}>
+                    {level.value}
+                  </div>
+                  <div>
+                    <div className="font-bold text-lg mb-1">{level.label}</div>
+                    <div className="text-sm text-gray-500">{level.difficulty}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="flex justify-end gap-3">
@@ -109,7 +133,7 @@ export function LevelChangeModal({
           <Button
             onClick={handleLevelChange}
             disabled={isUpdating || selectedLevel === currentLevel}
-            className="bg-red-600 hover:bg-red-700 text-white"
+            className="bg-[#cc1f1f] hover:bg-[#b01b1b] text-white"
           >
             {isUpdating ? "Updating..." : "Update Level"}
           </Button>
