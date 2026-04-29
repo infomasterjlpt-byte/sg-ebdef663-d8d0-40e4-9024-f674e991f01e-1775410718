@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 interface LevelContextType {
   level: string;
   setLevel: (level: string) => void;
-  refreshLevel: () => Promise<void>;
 }
 
 const LevelContext = createContext<LevelContextType | undefined>(undefined);
@@ -12,24 +11,32 @@ const LevelContext = createContext<LevelContextType | undefined>(undefined);
 export function LevelProvider({ children }: { children: ReactNode }) {
   const [level, setLevelState] = useState<string>("N5");
 
-  // Load level from user's profile on mount
   useEffect(() => {
     loadUserLevel();
   }, []);
 
   async function loadUserLevel() {
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
+    
+    if (user) {
+      // Fetch level from profiles table
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("level")
+        .eq("id", user.id)
+        .single();
 
-    const { data: userData } = await supabase
-      .from("users")
-      .select("target_level")
-      .eq("id", user.id)
-      .single();
-
-    if (userData?.target_level) {
-      setLevelState(userData.target_level);
-      localStorage.setItem("selectedLevel", userData.target_level);
+      const userLevel = profile?.level || "N5";
+      setLevelState(userLevel);
+      
+      // Also sync to localStorage for compatibility
+      localStorage.setItem("selectedLevel", userLevel);
+      
+      console.log("🎯 Loaded user level from profiles:", userLevel);
+    } else {
+      // Not logged in, use N5 as default
+      setLevelState("N5");
+      localStorage.setItem("selectedLevel", "N5");
     }
   }
 
@@ -39,12 +46,8 @@ export function LevelProvider({ children }: { children: ReactNode }) {
     localStorage.setItem("selectedLevel", newLevel);
   };
 
-  const refreshLevel = async () => {
-    await loadUserLevel();
-  };
-
   return (
-    <LevelContext.Provider value={{ level, setLevel, refreshLevel }}>
+    <LevelContext.Provider value={{ level, setLevel }}>
       {children}
     </LevelContext.Provider>
   );

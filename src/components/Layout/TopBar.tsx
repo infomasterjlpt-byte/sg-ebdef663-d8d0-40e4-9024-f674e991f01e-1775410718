@@ -34,19 +34,30 @@ export function TopBar() {
     const { data } = await supabase.auth.getUser();
     setUser(data.user);
     if (data.user) {
+      // Fetch from profiles table
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", data.user.id)
+        .single();
+
+      // Fetch from users table for premium status
       const { data: userData } = await supabase
         .from("users")
         .select("*")
         .eq("id", data.user.id)
         .single();
       
-      setUserProfile(userData);
+      setUserProfile(profile);
       setIsPremium(userData?.is_premium || false);
       
-      // Set selected level in localStorage for global access
-      if (userData?.target_level) {
-        localStorage.setItem("selectedLevel", userData.target_level);
-      }
+      // Get level from profiles table, fallback to users table
+      const userLevel = profile?.level || userData?.target_level || "N5";
+      
+      // Set in localStorage for global access
+      localStorage.setItem("selectedLevel", userLevel);
+      
+      console.log("👤 User level loaded:", userLevel);
     }
   }
 

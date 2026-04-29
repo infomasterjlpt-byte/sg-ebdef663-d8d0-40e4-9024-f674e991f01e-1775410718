@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import {
   Dialog,
   DialogContent,
@@ -19,6 +20,14 @@ interface LevelChangeModalProps {
   onLevelChanged: () => void;
 }
 
+const LEVEL_COLORS = {
+  N5: "bg-green-500",
+  N4: "bg-teal-500",
+  N3: "bg-purple-500",
+  N2: "bg-amber-500",
+  N1: "bg-red-900"
+};
+
 export function LevelChangeModal({
   open,
   onOpenChange,
@@ -26,6 +35,7 @@ export function LevelChangeModal({
   userId,
   onLevelChanged,
 }: LevelChangeModalProps) {
+  const router = useRouter();
   const [selectedLevel, setSelectedLevel] = useState<string>(currentLevel);
   const [isUpdating, setIsUpdating] = useState(false);
   const { setLevel } = useLevel();
@@ -35,36 +45,11 @@ export function LevelChangeModal({
   }, [currentLevel]);
 
   const levels = [
-    { 
-      value: "N5", 
-      name: "N5", 
-      difficulty: "Beginner",
-      color: "bg-green-500"
-    },
-    { 
-      value: "N4", 
-      name: "N4", 
-      difficulty: "Elementary",
-      color: "bg-teal-500"
-    },
-    { 
-      value: "N3", 
-      name: "N3", 
-      difficulty: "Intermediate",
-      color: "bg-purple-500"
-    },
-    { 
-      value: "N2", 
-      name: "N2", 
-      difficulty: "Upper Intermediate",
-      color: "bg-amber-500"
-    },
-    { 
-      value: "N1", 
-      name: "N1", 
-      difficulty: "Advanced",
-      color: "bg-red-900"
-    },
+    { value: "N5", label: "N5", difficulty: "Beginner" },
+    { value: "N4", label: "N4", difficulty: "Elementary" },
+    { value: "N3", label: "N3", difficulty: "Intermediate" },
+    { value: "N2", label: "N2", difficulty: "Upper Intermediate" },
+    { value: "N1", label: "N1", difficulty: "Advanced" },
   ];
 
   const handleLevelChange = async () => {
@@ -75,21 +60,32 @@ export function LevelChangeModal({
     setIsUpdating(true);
 
     try {
-      const { error } = await supabase
+      // Save to profiles table
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ level: selectedLevel })
+        .eq("id", userId);
+
+      if (profileError) {
+        console.error("Error updating profile level:", profileError);
+        setIsUpdating(false);
+        return;
+      }
+
+      // Also update users table for backwards compatibility
+      await supabase
         .from("users")
         .update({ target_level: selectedLevel })
         .eq("id", userId);
-
-      if (error) {
-        console.error("Error updating level:", error);
-        return;
-      }
 
       // Update global level context
       setLevel(selectedLevel);
 
       onLevelChanged();
       onOpenChange(false);
+
+      // Redirect to practice page to load fresh data
+      router.push("/practice");
     } catch (error) {
       console.error("Error updating level:", error);
     } finally {
@@ -101,8 +97,8 @@ export function LevelChangeModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[900px]">
         <DialogHeader>
-          <DialogTitle>Change Your Level</DialogTitle>
-          <DialogDescription>
+          <DialogTitle className="text-2xl">Change Your Level</DialogTitle>
+          <DialogDescription className="text-base">
             Select your target JLPT level. This will update your practice questions and progress tracking.
           </DialogDescription>
         </DialogHeader>
@@ -110,44 +106,36 @@ export function LevelChangeModal({
         <div className="grid grid-cols-5 gap-4 py-6">
           {levels.map((level) => {
             const isSelected = selectedLevel === level.value;
-            
+            const colorClass = LEVEL_COLORS[level.value as keyof typeof LEVEL_COLORS];
+
             return (
               <button
                 key={level.value}
                 onClick={() => setSelectedLevel(level.value)}
-                className={`relative flex flex-col items-center p-5 rounded-xl border-2 transition-all hover:bg-gray-50 ${
+                className={`relative p-5 text-center rounded-xl border-2 transition-all hover:bg-gray-50 ${
                   isSelected
                     ? "border-[#cc1f1f] bg-white"
                     : "border-gray-200 bg-white"
                 }`}
               >
-                {/* Checkmark for selected level */}
                 {isSelected && (
                   <div className="absolute top-2 right-2">
                     <Check className="h-5 w-5 text-[#cc1f1f]" />
                   </div>
                 )}
 
-                {/* Level badge */}
-                <div className={`w-16 h-16 rounded-full ${level.color} flex items-center justify-center mb-3`}>
-                  <span className="text-2xl font-bold text-white">{level.name}</span>
+                <div className={`w-16 h-16 rounded-full ${colorClass} flex items-center justify-center text-white text-xl font-bold mx-auto mb-3`}>
+                  {level.value}
                 </div>
 
-                {/* Level name */}
-                <div className="text-lg font-bold text-gray-900 mb-1">
-                  {level.name}
-                </div>
-
-                {/* Difficulty label */}
-                <div className="text-sm text-gray-500">
-                  {level.difficulty}
-                </div>
+                <div className="font-bold text-lg mb-1">{level.label}</div>
+                <div className="text-sm text-gray-500">{level.difficulty}</div>
               </button>
             );
           })}
         </div>
 
-        <div className="flex justify-end gap-3">
+        <div className="flex justify-end gap-3 pt-4 border-t">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
