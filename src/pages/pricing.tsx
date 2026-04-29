@@ -78,12 +78,13 @@ export default function Pricing() {
 
   async function handleUpgrade(plan: "monthly" | "sixmonth") {
     setLoading(true);
-    
-    // TODO: Implement Stripe Checkout
-    alert(`Stripe integration coming soon! Contact support@tokienglish.com to upgrade to ${plan === "monthly" ? "Premium Monthly" : "Premium Plus (6 months)"}.`);
-    
-    setLoading(false);
+    function handleUpgrade(plan: "monthly" | "sixmonth") {
+  if (plan === "monthly") {
+    window.location.href = "https://buy.stripe.com/14A8wO68q89g1s48rC5os00";
+  } else {
+    window.location.href = "https://buy.stripe.com/aFa00i7cuaho2w86ju5os01";
   }
+}
 
   const monthlyPrice = 499;
   const sixMonthPrice = 2499;
