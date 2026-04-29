@@ -19,22 +19,6 @@ interface LevelChangeModalProps {
   onLevelChanged: () => void;
 }
 
-const levelColors: Record<string, string> = {
-  N5: "bg-green-500",
-  N4: "bg-teal-500",
-  N3: "bg-purple-500",
-  N2: "bg-amber-500",
-  N1: "bg-red-900"
-};
-
-const levels = [
-  { value: "N5", label: "N5", difficulty: "Beginner" },
-  { value: "N4", label: "N4", difficulty: "Elementary" },
-  { value: "N3", label: "N3", difficulty: "Intermediate" },
-  { value: "N2", label: "N2", difficulty: "Upper Intermediate" },
-  { value: "N1", label: "N1", difficulty: "Advanced" },
-];
-
 export function LevelChangeModal({
   open,
   onOpenChange,
@@ -49,6 +33,39 @@ export function LevelChangeModal({
   useEffect(() => {
     setSelectedLevel(currentLevel);
   }, [currentLevel]);
+
+  const levels = [
+    { 
+      value: "N5", 
+      name: "N5", 
+      difficulty: "Beginner",
+      color: "bg-green-500"
+    },
+    { 
+      value: "N4", 
+      name: "N4", 
+      difficulty: "Elementary",
+      color: "bg-teal-500"
+    },
+    { 
+      value: "N3", 
+      name: "N3", 
+      difficulty: "Intermediate",
+      color: "bg-purple-500"
+    },
+    { 
+      value: "N2", 
+      name: "N2", 
+      difficulty: "Upper Intermediate",
+      color: "bg-amber-500"
+    },
+    { 
+      value: "N1", 
+      name: "N1", 
+      difficulty: "Advanced",
+      color: "bg-red-900"
+    },
+  ];
 
   const handleLevelChange = async () => {
     if (!selectedLevel || selectedLevel === currentLevel) {
@@ -90,36 +107,44 @@ export function LevelChangeModal({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-6">
-          <div className="grid grid-cols-5 gap-4">
-            {levels.map((level) => (
+        <div className="grid grid-cols-5 gap-4 py-6">
+          {levels.map((level) => {
+            const isSelected = selectedLevel === level.value;
+            
+            return (
               <button
                 key={level.value}
                 onClick={() => setSelectedLevel(level.value)}
-                className={`relative p-5 text-center rounded-xl border transition-all hover:bg-gray-50 ${
-                  selectedLevel === level.value
-                    ? "border-[#cc1f1f] border-2"
-                    : "border-gray-200"
+                className={`relative flex flex-col items-center p-5 rounded-xl border-2 transition-all hover:bg-gray-50 ${
+                  isSelected
+                    ? "border-[#cc1f1f] bg-white"
+                    : "border-gray-200 bg-white"
                 }`}
               >
-                {selectedLevel === level.value && (
+                {/* Checkmark for selected level */}
+                {isSelected && (
                   <div className="absolute top-2 right-2">
                     <Check className="h-5 w-5 text-[#cc1f1f]" />
                   </div>
                 )}
-                
-                <div className="flex flex-col items-center gap-3">
-                  <div className={`w-16 h-16 rounded-full ${levelColors[level.value]} flex items-center justify-center text-white text-2xl font-bold`}>
-                    {level.value}
-                  </div>
-                  <div>
-                    <div className="font-bold text-lg mb-1">{level.label}</div>
-                    <div className="text-sm text-gray-500">{level.difficulty}</div>
-                  </div>
+
+                {/* Level badge */}
+                <div className={`w-16 h-16 rounded-full ${level.color} flex items-center justify-center mb-3`}>
+                  <span className="text-2xl font-bold text-white">{level.name}</span>
+                </div>
+
+                {/* Level name */}
+                <div className="text-lg font-bold text-gray-900 mb-1">
+                  {level.name}
+                </div>
+
+                {/* Difficulty label */}
+                <div className="text-sm text-gray-500">
+                  {level.difficulty}
                 </div>
               </button>
-            ))}
-          </div>
+            );
+          })}
         </div>
 
         <div className="flex justify-end gap-3">
