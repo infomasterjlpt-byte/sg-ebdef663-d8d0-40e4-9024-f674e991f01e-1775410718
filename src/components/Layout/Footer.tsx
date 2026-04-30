@@ -2,72 +2,50 @@ import Link from "next/link";
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-800 py-8 mt-auto" style={{ paddingLeft: '5%', paddingRight: '5%', backgroundColor: '#000000' }}>
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          <div className="space-y-3">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <img
-                src="/logo.svg"
-                alt="Master JLPT"
-                style={{
-                  height: '40px',
-                  width: '40px',
-                  display: 'block',
-                  minHeight: '40px',
-                  maxHeight: '40px',
-                  flexShrink: 0
-                }}
-              />
-              <span style={{ fontSize: '24px', fontWeight: 800, lineHeight: '1', letterSpacing: '-0.5px' }}>
-                <span style={{ color: '#ffffff' }}>Master</span>
-                <span style={{ color: '#ffffff' }}>JLPT</span>
-              </span>
-            </div>
-            <p className="text-sm" style={{ color: '#a3a3a3' }}>
-              Master the JLPT with structured practice and progress tracking.
-            </p>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Product</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/levels" className="hover:text-white" style={{ color: '#a3a3a3' }}>Levels</Link></li>
-              <li><Link href="/practice" className="hover:text-white" style={{ color: '#a3a3a3' }}>Practice</Link></li>
-              <li><Link href="/mock-test" className="hover:text-white" style={{ color: '#a3a3a3' }}>Mock Tests</Link></li>
-              <li><Link href="/pricing" className="hover:text-white" style={{ color: '#a3a3a3' }}>Pricing</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Resources</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/grammar-guide" className="hover:text-white" style={{ color: '#a3a3a3' }}>Grammar Guide</Link></li>
-              <li><Link href="/exam-tips" className="hover:text-white" style={{ color: '#a3a3a3' }}>Exam Tips</Link></li>
-              <li><Link href="/progress" className="hover:text-white" style={{ color: '#a3a3a3' }}>Track Progress</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h3 className="font-semibold mb-3" style={{ color: '#ffffff' }}>Legal</h3>
-            <ul className="space-y-2 text-sm">
-              <li><Link href="/privacy" className="hover:text-white" style={{ color: '#a3a3a3' }}>Privacy Policy</Link></li>
-              <li><Link href="/terms" className="hover:text-white" style={{ color: '#a3a3a3' }}>Terms of Service</Link></li>
-            </ul>
-          </div>
+    <footer style={{ backgroundColor: '#111111', padding: '40px 80px' }}>
+      
+      {/* Top row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        
+        {/* Logo */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img
+            src="/logo.svg"
+            alt="Master JLPT"
+            style={{ height: '28px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+          />
+          <span style={{ fontSize: '18px', fontWeight: 800 }}>
+            <span style={{ color: '#ffffff' }}>Master</span>
+            <span style={{ color: '#cc1f1f' }}>JLPT</span>
+          </span>
         </div>
 
-        <div className="border-t border-gray-800 mt-8 pt-8 text-center text-sm" style={{ color: '#737373' }}>
-          <p className="mb-3">&copy; {new Date().getFullYear()} Master JLPT. All rights reserved.</p>
-          <p className="text-xs mb-2" style={{ color: '#525252' }}>
-            This site is not affiliated with or endorsed by the Japan Foundation or Japan Educational Exchanges and Services (JEES).
-            JLPT is a registered trademark of the Japan Foundation and JEES.
-          </p>
-          <p className="text-xs" style={{ color: '#525252' }}>
-            Powered by <a href="https://tokienglish.com" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors" style={{ color: '#737373' }}>Toki English</a>
-          </p>
+        {/* Links */}
+        <div style={{ display: 'flex', gap: '32px' }}>
+          <Link href="/" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Home</Link>
+          <Link href="/pricing" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Pricing</Link>
+          <Link href="/auth/signup" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Sign Up</Link>
         </div>
+
       </div>
+
+      {/* Divider */}
+      <div style={{ borderTop: '1px solid #222222', margin: '24px 0 16px' }} />
+
+   {/* Bottom row */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <p style={{ fontSize: '13px', margin: 0 }}>
+          <span style={{ color: '#666666' }}>Powered by </span>
+          <a href="https://tokienglish.com" target="_blank" rel="noopener noreferrer" style={{ color: '#cc1f1f', textDecoration: 'none' }}>Toki English</a>
+        </p>
+        <p style={{ color: '#555555', fontSize: '12px', margin: 0, textAlign: 'center', flex: 1, padding: '0 24px' }}>
+          JLPT is a registered trademark of the Japan Foundation and JEES. This site is not affiliated with or endorsed by JEES.
+        </p>
+        <p style={{ color: '#666666', fontSize: '13px', margin: 0 }}>
+          © {new Date().getFullYear()} Master JLPT
+        </p>
+      </div>
+
     </footer>
   );
 }
