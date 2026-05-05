@@ -76,9 +76,7 @@ export default function Pricing() {
     setUserProfile(profile);
   }
 
-  async function handleUpgrade(plan: "monthly" | "sixmonth") {
-    setLoading(true);
-    function handleUpgrade(plan: "monthly" | "sixmonth") {
+  function handleUpgrade(plan: "monthly" | "sixmonth") {
   if (plan === "monthly") {
     window.location.href = "https://buy.stripe.com/14A8wO68q89g1s48rC5os00";
   } else {
