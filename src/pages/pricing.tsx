@@ -172,13 +172,11 @@ export default function Pricing() {
                     </li>
                   ))}
                 </ul>
-                <Button
-                  onClick={() => handleUpgrade("monthly")}
-                  disabled={loading || userProfile?.is_premium}
-                  className="w-full"
-                >
-                  {loading ? "Processing..." : userProfile?.is_premium ? "Current Plan" : "Upgrade to Premium"}
-                </Button>
+             <a href="https://buy.stripe.com/14A8wO68q89g1s48rC5os00" style={{width:'100%'}}>
+  <Button className="w-full">
+    Get Monthly Access
+  </Button>
+</a>
               </CardContent>
             </Card>
 
