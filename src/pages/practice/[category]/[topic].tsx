@@ -26,11 +26,13 @@ const categoryInfo: Record<string, { icon: string; title: string }> = {
   reading: { icon: "読解", title: "Reading" }
 };
 
+const FREE_DAILY_LIMIT = 3;
+
 export default function TopicPage() {
   const router = useRouter();
   const { category, topic } = router.query;
   const { level } = useLevel();
-  
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -38,43 +40,72 @@ export default function TopicPage() {
   const [correctAnswers, setCorrectAnswers] = useState<boolean[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [todayCount, setTodayCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (category && topic && typeof category === "string" && typeof topic === "string") {
-      console.log("📚 Fetching questions for:", { level, category, topic });
       loadQuestions();
     }
-  }, [category, topic, level]); // Re-fetch when level changes
+  }, [category, topic, level]);
 
   async function loadQuestions() {
     if (!category || !topic || typeof category !== "string" || typeof topic !== "string") return;
 
     setLoading(true);
-    setQuestions([]); // Clear previous data
+    setQuestions([]);
     setCurrentIndex(0);
     setSelectedAnswer(null);
     setShowResults(false);
+    setShowPaywall(false);
 
     const user = await authService.getCurrentUser();
-    
     if (!user) {
       router.push("/auth/login");
       return;
     }
-
     setUserId(user.id);
 
-    console.log("🔍 Querying questions table with:", { level, category, topic: decodeURIComponent(topic) });
+    // Get premium status
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_premium")
+      .eq("id", user.id)
+      .single();
 
-    // Fetch questions for this group
+    const premium = profile?.is_premium || false;
+    setIsPremium(premium);
+
+    // Get today's count for free users
+    let todayAnswered = 0;
+    if (!premium) {
+      const today = new Date().toISOString().split("T")[0];
+      const { data: todaySessions } = await supabase
+        .from("practice_sessions")
+        .select("id")
+        .eq("user_id", user.id)
+        .gte("answered_at", today + "T00:00:00.000Z")
+        .lte("answered_at", today + "T23:59:59.999Z");
+
+      todayAnswered = todaySessions?.length || 0;
+      setTodayCount(todayAnswered);
+
+      if (todayAnswered >= FREE_DAILY_LIMIT) {
+        setShowPaywall(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     const { data, error } = await supabase
       .from("questions")
       .select("*")
       .eq("level", level)
       .eq("category", category)
       .eq("group", decodeURIComponent(topic))
-      .limit(20);
+      .limit(premium ? 20 : FREE_DAILY_LIMIT - todayAnswered);
 
     if (error) {
       console.error("Error fetching questions:", error);
@@ -82,12 +113,7 @@ export default function TopicPage() {
       return;
     }
 
-    console.log("📦 Found questions:", data?.length || 0);
-
-    // Shuffle questions client-side for better randomization
     const shuffled = (data || []).sort(() => Math.random() - 0.5);
-
-    // Format questions with proper types
     const formattedQuestions: Question[] = shuffled.map(q => ({
       id: q.id,
       question: q.question,
@@ -128,10 +154,17 @@ export default function TopicPage() {
         is_correct: correct,
         answered_at: new Date().toISOString()
       });
+      setTodayCount(prev => prev + 1);
     }
   };
 
   const handleNextQuestion = () => {
+    // Check if free user hit limit mid-session
+    if (!isPremium && todayCount >= FREE_DAILY_LIMIT) {
+      setShowPaywall(true);
+      return;
+    }
+
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
@@ -140,38 +173,54 @@ export default function TopicPage() {
     }
   };
 
-  const handlePracticeAgain = () => {
-    loadQuestions(); // This will re-shuffle and reset everything
-  };
-
   if (loading) {
     return (
       <AppLayout>
         <div className="flex items-center justify-center min-h-screen">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-muted-foreground">Loading questions...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const topicName = topic ? decodeURIComponent(topic as string) : "";
+  const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
+
+  // Paywall screen
+  if (showPaywall) {
+    return (
+      <AppLayout>
+        <div className="container mx-auto px-4 py-16 max-w-lg text-center">
+          <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏰</div>
+          <h2 className="text-2xl font-bold mb-3">Daily Limit Reached</h2>
+          <p className="text-muted-foreground mb-2">
+            You have used your <strong>3 free questions</strong> for today.
+          </p>
+          <p className="text-muted-foreground mb-6">
+            Upgrade to Premium for unlimited practice questions every day.
+          </p>
+          <div className="flex flex-col gap-3">
+            <Link href="/pricing">
+              <Button className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white" size="lg">
+                Upgrade for Unlimited Access
+              </Button>
+            </Link>
+            <Link href="/dashboard">
+              <Button variant="outline" className="w-full">Go to Dashboard</Button>
+            </Link>
           </div>
+          <p className="text-sm text-muted-foreground mt-4">
+            Free limit resets every day at midnight.
+          </p>
         </div>
       </AppLayout>
     );
   }
 
   if (questions.length === 0) {
-    const topicName = topic ? decodeURIComponent(topic as string) : "";
-    const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
-
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
-          <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href="/practice" className="hover:text-foreground">Practice</Link>
-            <span>/</span>
-            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
-            <span>/</span>
-            <span className="text-foreground font-medium">{topicName}</span>
-          </div>
-
+        <div className="container mx-auto px-4 py-8 max-w-4xl">
           <Card className="p-8 text-center">
             <h3 className="text-lg font-semibold mb-2">No questions available</h3>
             <p className="text-muted-foreground mb-4">
@@ -186,12 +235,12 @@ export default function TopicPage() {
     );
   }
 
-  const topicName = topic ? decodeURIComponent(topic as string) : "";
-  const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
   const currentQuestion = questions[currentIndex];
   const hasAnswered = answeredQuestions[currentIndex];
   const score = correctAnswers.filter(Boolean).length;
   const percentage = Math.round((score / questions.length) * 100);
+  const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
+  const optionLabels = ["A", "B", "C", "D"];
 
   if (showResults) {
     let emoji = "😢";
@@ -200,41 +249,24 @@ export default function TopicPage() {
 
     return (
       <AppLayout>
-        <SEO 
-          title={`Results - ${topicName} - ${categoryData.title} Practice`}
-          description="Practice session results"
-        />
-        
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-2xl">
-          <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-            <Link href="/practice" className="hover:text-foreground">Practice</Link>
-            <span>/</span>
-            <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
-            <span>/</span>
-            <span className="text-foreground font-medium">{topicName}</span>
-          </div>
-
+        <div className="container mx-auto px-4 py-8 max-w-2xl">
           <Card className="p-8">
             <div className="text-center">
               <h1 className="text-3xl font-bold mb-2">Practice Complete!</h1>
               <p className="text-muted-foreground mb-8">Great work completing this session</p>
-              
               <div className="mb-8">
-                <div className="text-6xl font-bold text-primary mb-2">
-                  {score}/{questions.length}
-                </div>
-                <div className="text-2xl text-muted-foreground mb-4">
-                  {percentage}% Correct
-                </div>
+                <div className="text-6xl font-bold text-primary mb-2">{score}/{questions.length}</div>
+                <div className="text-2xl text-muted-foreground mb-4">{percentage}% Correct</div>
                 <div className="text-6xl mb-4">{emoji}</div>
               </div>
-
+              {!isPremium && (
+                <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '12px 16px', marginBottom: '24px', fontSize: '14px', color: '#92400e' }}>
+                  You have used <strong>{todayCount} of {FREE_DAILY_LIMIT}</strong> free questions today.{" "}
+                  <Link href="/pricing" style={{ color: '#cc1f1f', fontWeight: 600 }}>Upgrade for unlimited →</Link>
+                </div>
+              )}
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  onClick={handlePracticeAgain}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                  size="lg"
-                >
+                <Button onClick={() => loadQuestions()} className="bg-red-600 hover:bg-red-700 text-white" size="lg">
                   Practice Again
                 </Button>
                 <Link href={`/practice/${category}`}>
@@ -248,16 +280,13 @@ export default function TopicPage() {
     );
   }
 
-  const progressPercentage = ((currentIndex + 1) / questions.length) * 100;
-  const optionLabels = ["A", "B", "C", "D"];
-
   return (
     <AppLayout>
-      <SEO 
+      <SEO
         title={`${topicName} - ${categoryData.title} Practice`}
-        description={`Practice ${categoryData.title} questions for ${topicName}`}
+        description={`Practice ${categoryData.title} questions`}
       />
-      
+
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/practice" className="hover:text-foreground">Practice</Link>
@@ -267,30 +296,30 @@ export default function TopicPage() {
           <span className="text-foreground font-medium">{topicName}</span>
         </div>
 
+        {/* Free user counter */}
+        {!isPremium && (
+          <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 16px', marginBottom: '16px', fontSize: '13px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span><strong>{FREE_DAILY_LIMIT - todayCount} free questions</strong> remaining today</span>
+            <Link href="/pricing" style={{ color: '#cc1f1f', fontWeight: 600, fontSize: '12px' }}>Upgrade →</Link>
+          </div>
+        )}
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">
-              Question {currentIndex + 1} of {questions.length}
-            </span>
-            <span className="text-sm text-muted-foreground">
-              {Math.round(progressPercentage)}% Complete
-            </span>
+            <span className="text-sm font-medium">Question {currentIndex + 1} of {questions.length}</span>
+            <span className="text-sm text-muted-foreground">{Math.round(progressPercentage)}% Complete</span>
           </div>
           <Progress value={progressPercentage} className="h-2" />
         </div>
 
         <Card className="p-8">
-          {/* Reading Passage (for reading category) */}
           {category === "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
             <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
               <p className="text-sm font-medium text-gray-500 mb-2">Passage:</p>
-              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">
-                {currentQuestion.example_sentence}
-              </p>
+              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.example_sentence}</p>
             </div>
           )}
 
-          {/* Example Sentence (for kanji and grammar) */}
           {category !== "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
             <div className="mb-6 p-4 bg-gray-100 rounded-lg">
               <p className="text-base text-gray-700">{currentQuestion.example_sentence}</p>
@@ -312,20 +341,15 @@ export default function TopicPage() {
                   onClick={() => handleAnswerSelect(index)}
                   disabled={hasAnswered}
                   className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
-                    showCorrect
-                      ? "border-green-500 bg-green-50"
-                      : showIncorrect
-                      ? "border-red-500 bg-red-50"
-                      : isSelected
-                      ? "border-primary bg-primary/5"
-                      : "border-gray-200 hover:border-primary/50"
+                    showCorrect ? "border-green-500 bg-green-50"
+                    : showIncorrect ? "border-red-500 bg-red-50"
+                    : isSelected ? "border-primary bg-primary/5"
+                    : "border-gray-200 hover:border-primary/50"
                   } ${hasAnswered ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <span className="font-semibold text-muted-foreground">
-                        {optionLabels[index]}
-                      </span>
+                      <span className="font-semibold text-muted-foreground">{optionLabels[index]}</span>
                       <span className={showCorrect ? "text-green-700 font-medium" : showIncorrect ? "text-red-700 font-medium" : ""}>
                         {option}
                       </span>
@@ -345,11 +369,7 @@ export default function TopicPage() {
           )}
 
           {hasAnswered && (
-            <Button
-              onClick={handleNextQuestion}
-              className="w-full bg-red-600 hover:bg-red-700 text-white"
-              size="lg"
-            >
+            <Button onClick={handleNextQuestion} className="w-full bg-red-600 hover:bg-red-700 text-white" size="lg">
               {currentIndex < questions.length - 1 ? "Next Question" : "See Results"}
             </Button>
           )}
