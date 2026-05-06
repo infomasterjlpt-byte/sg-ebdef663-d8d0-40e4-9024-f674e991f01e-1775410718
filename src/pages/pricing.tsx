@@ -3,57 +3,35 @@ import { useRouter } from "next/router";
 import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { AppLayout } from "@/components/Layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useCurrency } from "@/contexts/CurrencyContext";
-import { Check, X, Crown, Zap } from "lucide-react";
+import { Check, X } from "lucide-react";
 
-const FEATURES = {
-  free: [
-    { text: "3 Questions Per Day", included: true },
-    { text: "Basic Progress Tracking", included: true },
-    { text: "Daily Streak Counter", included: true },
-    { text: "N5 Level Only (Limited)", included: true },
-    { text: "Full N5-N1 Practice", included: false },
-    { text: "Mock Exams", included: false },
-    { text: "Unlimited Daily Questions", included: false },
-    { text: "Advanced Analytics", included: false },
-    { text: "Weak Point Analysis", included: false },
-    { text: "Predicted Score", included: false },
-  ],
-  premium: [
-    { text: "All N5-N1 Practice Questions", included: true },
-    { text: "Unlimited Daily Questions", included: true },
-    { text: "Basic Progress Tracking", included: true },
-    { text: "Daily Quiz (Any Level)", included: true },
-    { text: "Full Mock Exams (All Levels)", included: true },
-    { text: "Timed Practice Sessions", included: true },
-    { text: "Advanced Analytics", included: true },
-    { text: "Study Time Graphs", included: true },
-    { text: "Priority Support", included: true },
-  ],
-  premiumPlus: [
-    { text: "Everything in Premium", included: true },
-    { text: "6 Months Access", included: true },
-    { text: "Weak Kanji/Vocab Lists", included: true },
-    { text: "Predicted JLPT Score", included: true },
-    { text: "Personalized Study Plan", included: true },
-    { text: "Exclusive Study Materials", included: true },
-    { text: "Priority Email Support", included: true },
-    { text: "Early Access to New Features", included: true },
-    { text: "Certificate of Completion", included: true },
-    { text: "Best Value - Save 17%", included: true },
-  ]
-};
+const FREE_FEATURES = [
+  { text: "N5 Practice Questions", included: true },
+  { text: "Kanji, Grammar & Reading", included: true },
+  { text: "Track your progress", included: true },
+  { text: "Group by topic practice", included: true },
+  { text: "All levels N5 to N2", included: false },
+  { text: "Unlimited questions", included: false },
+  { text: "Full mock tests", included: false },
+  { text: "Review system", included: false },
+];
+
+const PAID_FEATURES = [
+  { text: "Everything in Free" },
+  { text: "All levels N5 to N2" },
+  { text: "Unlimited practice questions" },
+  { text: "Full mock tests" },
+  { text: "Review system" },
+  { text: "Priority support" },
+  { text: "Cancel anytime" },
+];
 
 export default function Pricing() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const { currency, convertPrice, getCurrencySymbol } = useCurrency();
+  const { convertPrice, getCurrencySymbol } = useCurrency();
 
   useEffect(() => {
     checkAuth();
@@ -65,188 +43,128 @@ export default function Pricing() {
       router.push("/auth/login");
       return;
     }
-    setUser(user);
-
     const { data: profile } = await supabase
-      .from("users")
+      .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
-
     setUserProfile(profile);
   }
 
-  function handleUpgrade(plan: "monthly" | "sixmonth") {
-  if (plan === "monthly") {
-    window.location.href = "https://buy.stripe.com/14A8wO68q89g1s48rC5os00";
-  } else {
-    window.location.href = "https://buy.stripe.com/aFa00i7cuaho2w86ju5os01";
-  }
-}
-  
-  const monthlyPrice = 499;
-  const sixMonthPrice = 2499;
   const symbol = getCurrencySymbol();
 
   return (
     <>
       <SEO title="Pricing - Master JLPT" description="Choose your Master JLPT plan" />
       <AppLayout>
-        <div className="max-w-6xl mx-auto space-y-8">
-          <div className="text-center">
-            <h1 className="text-4xl font-bold mb-2">Choose Your Plan</h1>
-            <p className="text-muted-foreground text-lg">
-              Unlock your full JLPT potential with Premium
-            </p>
+        <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '40px 24px' }}>
+
+          {/* Header */}
+          <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+            <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#111111', margin: '0 0 8px' }}>Choose Your Plan</h1>
+            <p style={{ fontSize: '16px', color: '#888888', margin: 0 }}>Start free. Upgrade when you are ready.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Free Plan */}
-            <Card>
-              <CardHeader>
-                <div className="space-y-2">
-                  <CardTitle className="text-2xl">Free</CardTitle>
-                  <div>
-                    <span className="text-4xl font-bold">{symbol}0</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Try before you commit
-                  </p>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  {FEATURES.free.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      {feature.included ? (
-                        <Check className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      ) : (
-                        <X className="h-5 w-5 text-muted-foreground/30 flex-shrink-0 mt-0.5" />
-                      )}
-                      <span className={feature.included ? "text-foreground" : "text-muted-foreground/50"}>
-                        {feature.text}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={!userProfile?.is_premium}
-                  asChild
-                >
-                  <Link href="/auth/signup">
-                    {userProfile?.is_premium ? "Current Plan" : "Get Started"}
-                  </Link>
-                </Button>
-              </CardContent>
-            </Card>
+          {/* Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '24px', alignItems: 'stretch' }}>
 
-            {/* Premium Monthly */}
-            <Card className="border-primary relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-primary text-white px-4 py-1 text-sm font-semibold">
-                POPULAR
+            {/* Free */}
+            <div style={{ background: '#ffffff', border: '1px solid #e5e5e5', borderRadius: '16px', padding: '36px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 2px 12px rgba(0,0,0,0.06)' }}>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#888888', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 16px' }}>Free</p>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#111111', fontSize: '44px', fontWeight: 800 }}>{symbol}0</span>
+                  <span style={{ color: '#888888', fontSize: '15px' }}>/month</span>
+                </div>
+                <p style={{ color: '#888888', fontSize: '14px', margin: '0 0 28px' }}>Start learning for free</p>
+                <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '24px', marginBottom: '28px' }}>
+                  {FREE_FEATURES.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      {f.included
+                        ? <Check size={16} color="#22c55e" />
+                        : <X size={16} color="#cccccc" />
+                      }
+                      <span style={{ color: f.included ? '#444444' : '#cccccc', fontSize: '14px' }}>{f.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <CardHeader>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Crown className="h-6 w-6 text-primary" />
-                    <CardTitle className="text-2xl">Premium</CardTitle>
-                  </div>
-                  <div>
-                    <span className="text-4xl font-bold">{symbol}{convertPrice(monthlyPrice)}</span>
-                    <span className="text-muted-foreground">/month</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Full access, unlimited practice
-                  </p>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  {FEATURES.premium.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground">{feature.text}</span>
-                    </li>
-                  ))}
-                </ul>
-             <a href="https://buy.stripe.com/14A8wO68q89g1s48rC5os00" style={{width:'100%'}}>
-  <Button className="w-full">
-    Get Monthly Access
-  </Button>
-</a>
-              </CardContent>
-            </Card>
+              <Link href="/auth/signup" style={{ width: '100%' }}>
+                <button style={{ width: '100%', padding: '14px', background: 'transparent', border: '1.5px solid #cccccc', borderRadius: '8px', color: '#111111', fontSize: '15px', fontWeight: 600, cursor: 'pointer' }}>
+                  Get Started
+                </button>
+              </Link>
+            </div>
 
-            {/* Premium Plus 6 Months */}
-            <Card className="border-2 border-accent relative overflow-hidden">
-              <div className="absolute top-0 right-0 bg-accent text-white px-4 py-1 text-sm font-semibold flex items-center gap-1">
-                <Zap className="h-4 w-4" />
+            {/* Monthly */}
+            <div style={{ background: '#ffffff', border: '2px solid #cc1f1f', borderRadius: '16px', padding: '36px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 24px rgba(204,31,31,0.12)', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#cc1f1f', color: '#ffffff', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', padding: '5px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
+                MOST POPULAR
+              </div>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#cc1f1f', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 16px' }}>Monthly</p>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#111111', fontSize: '44px', fontWeight: 800 }}>{symbol}{convertPrice(499)}</span>
+                  <span style={{ color: '#888888', fontSize: '15px' }}>/month</span>
+                </div>
+                <p style={{ color: '#888888', fontSize: '14px', margin: '0 0 28px' }}>Billed monthly · cancel anytime</p>
+                <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '24px', marginBottom: '28px' }}>
+                  {PAID_FEATURES.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <Check size={16} color="#cc1f1f" />
+                      <span style={{ color: '#111111', fontSize: '14px' }}>{f.text}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <a href="https://buy.stripe.com/14A8wO68q89g1s48rC5os00" style={{ width: '100%', textDecoration: 'none' }}>
+                <button style={{ width: '100%', padding: '14px', background: '#cc1f1f', border: 'none', borderRadius: '8px', color: '#ffffff', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+                  {userProfile?.is_premium ? 'Current Plan' : 'Get Monthly Access'}
+                </button>
+              </a>
+            </div>
+
+            {/* 6 Months */}
+            <div style={{ background: '#ffffff', border: '2px solid #f59e0b', borderRadius: '16px', padding: '36px 28px', display: 'flex', flexDirection: 'column', boxShadow: '0 4px 24px rgba(245,158,11,0.1)', position: 'relative' }}>
+              <div style={{ position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)', background: '#f59e0b', color: '#111111', fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', padding: '5px 16px', borderRadius: '20px', whiteSpace: 'nowrap' }}>
                 BEST VALUE
               </div>
-              <CardHeader>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Zap className="h-6 w-6 text-accent" />
-                    <CardTitle className="text-2xl">Premium Plus</CardTitle>
-                  </div>
-                  <div>
-                    <span className="text-4xl font-bold">{symbol}{convertPrice(sixMonthPrice)}</span>
-                    <span className="text-muted-foreground">/6 months</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-accent text-accent">
-                      Save {symbol}{convertPrice(monthlyPrice * 6 - sixMonthPrice)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    Maximum value for serious learners
-                  </p>
+              <div style={{ flex: 1 }}>
+                <p style={{ color: '#f59e0b', fontSize: '13px', fontWeight: 600, letterSpacing: '0.1em', textTransform: 'uppercase', margin: '0 0 16px' }}>6 Months</p>
+                <div style={{ marginBottom: '8px' }}>
+                  <span style={{ color: '#111111', fontSize: '44px', fontWeight: 800 }}>{symbol}{convertPrice(2499)}</span>
+                  <span style={{ color: '#888888', fontSize: '15px' }}>/6 months</span>
                 </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <ul className="space-y-3">
-                  {FEATURES.premiumPlus.map((feature, index) => (
-                    <li key={index} className="flex items-start gap-3">
-                      <Check className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
-                      <span className="text-foreground font-medium">{feature.text}</span>
-                    </li>
+                <div style={{ marginBottom: '28px' }}>
+                  <span style={{ background: '#fff8e6', color: '#d97706', fontSize: '12px', fontWeight: 600, padding: '3px 10px', borderRadius: '20px' }}>Save {symbol}{convertPrice(495)} vs monthly</span>
+                </div>
+                <div style={{ borderTop: '1px solid #f0f0f0', paddingTop: '24px', marginBottom: '28px' }}>
+                  {PAID_FEATURES.map((f, i) => (
+                    <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                      <Check size={16} color="#f59e0b" />
+                      <span style={{ color: '#111111', fontSize: '14px' }}>{f.text}</span>
+                    </div>
                   ))}
-                </ul>
-                <Button
-                  onClick={() => handleUpgrade("sixmonth")}
-                  disabled={loading || userProfile?.is_premium}
-                  className="w-full bg-accent hover:bg-accent/90"
-                >
-                  {loading ? "Processing..." : userProfile?.is_premium ? "Current Plan" : "Get Premium Plus"}
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="max-w-4xl mx-auto">
-            <CardHeader>
-              <CardTitle>Why Choose Premium?</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">5 Levels</div>
-                  <p className="text-sm text-muted-foreground">Complete N5-N1 question bank</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">Unlimited</div>
-                  <p className="text-sm text-muted-foreground">No daily question limits</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-3xl font-bold text-primary mb-2">Full Tests</div>
-                  <p className="text-sm text-muted-foreground">Authentic timed mock exams</p>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px' }}>
+                    <Check size={16} color="#f59e0b" />
+                    <span style={{ color: '#111111', fontSize: '14px' }}>6 months at lower price</span>
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+              <a href="https://buy.stripe.com/aFa00i7cuaho2w86ju5os01" style={{ width: '100%', textDecoration: 'none' }}>
+                <button style={{ width: '100%', padding: '14px', background: '#f59e0b', border: 'none', borderRadius: '8px', color: '#111111', fontSize: '15px', fontWeight: 700, cursor: 'pointer' }}>
+                  {userProfile?.is_premium ? 'Current Plan' : 'Get 6 Months Access'}
+                </button>
+              </a>
+            </div>
+
+          </div>
+
+          {/* Footer note */}
+          <p style={{ textAlign: 'center', color: '#aaaaaa', fontSize: '13px', marginTop: '32px' }}>
+            Secure payment via Stripe · Cancel anytime · No hidden fees
+          </p>
+
         </div>
       </AppLayout>
     </>
