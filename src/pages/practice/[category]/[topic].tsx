@@ -20,6 +20,10 @@ interface Question {
   example_sentence: string | null;
 }
 
+interface Profile {
+  is_premium?: boolean;
+}
+
 const categoryInfo: Record<string, { icon: string; title: string }> = {
   kanji: { icon: "漢字", title: "Kanji" },
   grammar: { icon: "文法", title: "Grammar" },
@@ -68,17 +72,16 @@ export default function TopicPage() {
     }
     setUserId(user.id);
 
-    // Get premium status
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from("profiles")
       .select("is_premium")
       .eq("id", user.id)
       .single();
 
- const premium = (profile as any)?.is_premium || false;
+    const profile = profileData as Profile | null;
+    const premium = profile?.is_premium === true;
     setIsPremium(premium);
 
-    // Get today's count for free users
     let todayAnswered = 0;
     if (!premium) {
       const today = new Date().toISOString().split("T")[0];
@@ -99,16 +102,17 @@ export default function TopicPage() {
       }
     }
 
+    const limit = premium ? 20 : FREE_DAILY_LIMIT - todayAnswered;
+
     const { data, error } = await supabase
       .from("questions")
       .select("*")
       .eq("level", level)
       .eq("category", category)
       .eq("group", decodeURIComponent(topic))
-      .limit(premium ? 20 : FREE_DAILY_LIMIT - todayAnswered);
+      .limit(limit);
 
     if (error) {
-      console.error("Error fetching questions:", error);
       setLoading(false);
       return;
     }
@@ -159,12 +163,10 @@ export default function TopicPage() {
   };
 
   const handleNextQuestion = () => {
-    // Check if free user hit limit mid-session
     if (!isPremium && todayCount >= FREE_DAILY_LIMIT) {
       setShowPaywall(true);
       return;
     }
-
     if (currentIndex < questions.length - 1) {
       setCurrentIndex(currentIndex + 1);
       setSelectedAnswer(null);
@@ -186,7 +188,6 @@ export default function TopicPage() {
   const topicName = topic ? decodeURIComponent(topic as string) : "";
   const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
 
-  // Paywall screen
   if (showPaywall) {
     return (
       <AppLayout>
@@ -296,7 +297,6 @@ export default function TopicPage() {
           <span className="text-foreground font-medium">{topicName}</span>
         </div>
 
-        {/* Free user counter */}
         {!isPremium && (
           <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 16px', marginBottom: '16px', fontSize: '13px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span><strong>{FREE_DAILY_LIMIT - todayCount} free questions</strong> remaining today</span>
