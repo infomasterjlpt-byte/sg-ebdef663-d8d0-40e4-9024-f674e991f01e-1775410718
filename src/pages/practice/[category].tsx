@@ -62,12 +62,13 @@ export default function CategoryPage() {
       .eq("id", user.id)
       .single();
 
-    const premium = profile?.is_premium || false;
-    setIsPremium(premium);
+    const { data: profile } = await supabase
+  .from("profiles")
+  .select("*")
+  .eq("id", user.id)
+  .single();
 
-    // If free user trying to access non-N5 level — redirect
-    if (!premium && level !== FREE_LEVEL) {
-      setLoading(false);
+const premium = (profile as any)?.is_premium || false;
       return;
     }
 
