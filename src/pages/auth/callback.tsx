@@ -8,18 +8,36 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       if (session) {
+        // Check if plan param exists in URL (for payment redirect)
+        const urlParams = new URLSearchParams(window.location.search);
+        const plan = urlParams.get("plan");
+
+        // Create profile if it doesn't exist
         const { data: profile } = await supabase
-          .from("users")
-          .select("target_level")
+          .from("profiles")
+          .select("id, level")
           .eq("id", session.user.id)
           .single();
 
-        if (profile?.target_level) {
-          router.push("/dashboard");
+        if (!profile) {
+          await supabase.from("profiles").insert({
+            id: session.user.id,
+            email: session.user.email,
+            level: "N5",
+            is_premium: false,
+            created_at: new Date().toISOString(),
+          });
+        }
+
+        // Redirect based on plan param
+        if (plan === "monthly") {
+          window.location.href = "https://buy.stripe.com/14A8wO68q89g1s48rC5os00";
+        } else if (plan === "sixmonth") {
+          window.location.href = "https://buy.stripe.com/aFa00i7cuaho2w86ju5os01";
         } else {
-          router.push("/level-selection");
+          router.push("/dashboard");
         }
       } else {
         router.push("/auth/login");
