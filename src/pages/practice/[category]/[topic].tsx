@@ -75,7 +75,7 @@ export default function TopicPage() {
       .eq("id", user.id)
       .single();
 
-    const premium = profile?.is_premium || false;
+ const premium = (profile as any)?.is_premium || false;
     setIsPremium(premium);
 
     // Get today's count for free users
