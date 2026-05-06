@@ -83,7 +83,7 @@ export default function Pricing() {
     window.location.href = "https://buy.stripe.com/aFa00i7cuaho2w86ju5os01";
   }
 }
-
+  
   const monthlyPrice = 499;
   const sixMonthPrice = 2499;
   const symbol = getCurrencySymbol();
