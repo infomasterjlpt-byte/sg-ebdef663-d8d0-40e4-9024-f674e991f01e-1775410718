@@ -754,7 +754,7 @@ export default function Home() {
                 className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white font-semibold"
                 asChild
               >
-                <Link href="https://buy.stripe.com/14A8wO68q89g1s48rC" target="_blank">
+              <Link href="/auth/signup?plan=monthly">
                   Get Monthly Access
                 </Link>
               </Button>
@@ -820,7 +820,7 @@ export default function Home() {
                 className="w-full bg-[#f59e0b] hover:bg-[#e08e0a] text-black font-semibold"
                 asChild
               >
-                <Link href="https://buy.stripe.com/aFa00i7cuaho2w86ju" target="_blank">
+               <Link href="/auth/signup?plan=sixmonth">
                   Get 6 Months Access
                 </Link>
               </Button>
