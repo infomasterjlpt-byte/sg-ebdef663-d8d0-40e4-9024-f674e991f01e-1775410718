@@ -9,12 +9,16 @@ import { Progress } from "@/components/ui/progress";
 import { authService } from "@/services/authService";
 import { supabase } from "@/integrations/supabase/client";
 import { useLevel } from "@/contexts/LevelContext";
-import { Lock } from "lucide-react";
 
 interface GroupData {
   group: string;
   total: number;
   answered: number;
+}
+
+interface Profile {
+  is_premium?: boolean;
+  level?: string;
 }
 
 const categoryInfo: Record<string, { icon: string; title: string }> = {
@@ -23,19 +27,18 @@ const categoryInfo: Record<string, { icon: string; title: string }> = {
   reading: { icon: "読解", title: "Reading" }
 };
 
+const FREE_DAILY_LIMIT = 3;
+const FREE_LEVEL = "N5";
+
 export default function CategoryPage() {
   const router = useRouter();
   const { category } = router.query;
   const { level } = useLevel();
 
   const [groups, setGroups] = useState<GroupData[]>([]);
-  const [userId, setUserId] = useState<string | null>(null);
   const [isPremium, setIsPremium] = useState(false);
   const [todayCount, setTodayCount] = useState(0);
   const [loading, setLoading] = useState(true);
-
-  const FREE_DAILY_LIMIT = 3;
-  const FREE_LEVEL = "N5";
 
   useEffect(() => {
     if (category && typeof category === "string") {
@@ -53,26 +56,22 @@ export default function CategoryPage() {
       router.push("/auth/login");
       return;
     }
-    setUserId(user.id);
 
-    // Get user profile for premium status
-    const { data: profile } = await supabase
+    const { data: profileData } = await supabase
       .from("profiles")
       .select("is_premium, level")
       .eq("id", user.id)
       .single();
 
-    const { data: profile } = await supabase
-  .from("profiles")
-  .select("*")
-  .eq("id", user.id)
-  .single();
+    const profile = profileData as Profile | null;
+    const premium = profile?.is_premium === true;
+    setIsPremium(premium);
 
-const premium = (profile as any)?.is_premium || false;
+    if (!premium && level !== FREE_LEVEL) {
+      setLoading(false);
       return;
     }
 
-    // Get today's question count for free users
     if (!premium) {
       const today = new Date().toISOString().split("T")[0];
       const { data: todaySessions } = await supabase
@@ -81,11 +80,9 @@ const premium = (profile as any)?.is_premium || false;
         .eq("user_id", user.id)
         .gte("answered_at", today + "T00:00:00.000Z")
         .lte("answered_at", today + "T23:59:59.999Z");
-
       setTodayCount(todaySessions?.length || 0);
     }
 
-    // Fetch groups
     const { data: questionsData, error } = await supabase
       .from("questions")
       .select("group")
@@ -93,13 +90,12 @@ const premium = (profile as any)?.is_premium || false;
       .eq("category", category);
 
     if (error) {
-      console.error("Error fetching questions:", error);
       setLoading(false);
       return;
     }
 
     const groupCounts: { [key: string]: number } = {};
-    questionsData?.forEach((q: any) => {
+    questionsData?.forEach((q: { group: string | null }) => {
       const groupName = q.group || "Ungrouped";
       groupCounts[groupName] = (groupCounts[groupName] || 0) + 1;
     });
@@ -136,7 +132,6 @@ const premium = (profile as any)?.is_premium || false;
 
   const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
 
-  // Free user trying to access paid level
   if (!isPremium && level !== FREE_LEVEL) {
     return (
       <AppLayout>
@@ -164,7 +159,6 @@ const premium = (profile as any)?.is_premium || false;
     );
   }
 
-  // Free user hit daily limit
   if (!isPremium && todayCount >= FREE_DAILY_LIMIT) {
     return (
       <AppLayout>
@@ -220,7 +214,6 @@ const premium = (profile as any)?.is_premium || false;
             </p>
           </div>
 
-          {/* Free user daily limit banner */}
           {!isPremium && (
             <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '10px 16px', fontSize: '13px', color: '#92400e' }}>
               <strong>{FREE_DAILY_LIMIT - todayCount} free questions</strong> remaining today.{" "}
