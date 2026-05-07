@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { Home, BookOpen, Brain, Clock, TrendingUp, BookText, Lightbulb, CreditCard } from "lucide-react";
+import { Home, BookOpen, Clock, BookText, Lightbulb, CreditCard } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: Home },
   { href: "/practice", label: "Practice", icon: BookOpen },
-  { href: "/review", label: "Review", icon: Brain },
   { href: "/mock-test", label: "Mock Test", icon: Clock },
-  { href: "/progress", label: "Progress", icon: TrendingUp },
   { href: "/grammar-guide", label: "Grammar", icon: BookText },
   { href: "/exam-tips", label: "Exam Tips", icon: Lightbulb },
   { href: "/pricing", label: "Pricing", icon: CreditCard },
@@ -31,7 +29,7 @@ export function Navigation({ onNavigate }: NavigationProps) {
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = router.pathname === item.href;
-        
+
         return (
           <Link
             key={item.href}
