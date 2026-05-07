@@ -12,15 +12,17 @@ export default function Privacy() {
         {/* Header */}
         <header className="border-b border-border bg-card">
           <div className="container flex items-center justify-between h-16">
-            <Link href="/" className="flex items-center gap-2.5">
-              <div className="w-10 h-10 bg-[#cc1f1f] rounded-[10px] flex items-center justify-center">
-                <span className="text-white font-bold text-xl">M</span>
-              </div>
-              <div className="flex items-center gap-1" style={{ fontSize: '18px', letterSpacing: '-0.5px' }}>
-                <span className="font-extrabold text-[#111111]">Master</span>
-                <span className="font-normal text-[#cc1f1f]">JLPT</span>
-              </div>
-            </Link>
+            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+  <img
+    src="/logo.svg"
+    alt="Master JLPT"
+    style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
+  />
+  <span style={{ fontSize: '20px', fontWeight: 800, lineHeight: 1 }}>
+    <span style={{ color: '#111111' }}>Master</span>
+    <span style={{ color: '#cc1f1f' }}>JLPT</span>
+  </span>
+</Link>
             <Button variant="ghost" asChild>
               <Link href="/">
                 <ArrowLeft className="h-4 w-4 mr-2" />
