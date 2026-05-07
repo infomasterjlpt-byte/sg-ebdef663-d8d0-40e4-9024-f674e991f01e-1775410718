@@ -2,6 +2,7 @@ import Link from "next/link";
 import { SEO } from "@/components/SEO";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import { Footer } from "@/components/Layout/Footer";
 
 export default function Privacy() {
   return (
@@ -10,29 +11,27 @@ export default function Privacy() {
       
       <div className="min-h-screen bg-background">
         {/* Header */}
-        <header className="border-b border-border bg-card">
-          <div className="container flex items-center justify-between h-16">
-            <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
-  <img
-    src="/logo.svg"
-    alt="Master JLPT"
-    style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
-  />
-  <span style={{ fontSize: '20px', fontWeight: 800, lineHeight: 1 }}>
-    <span style={{ color: '#111111' }}>Master</span>
-    <span style={{ color: '#cc1f1f' }}>JLPT</span>
-  </span>
-</Link>
-            <Button variant="ghost" asChild>
-              <Link href="/">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Home
-              </Link>
-            </Button>
-          </div>
+        <header style={{ backgroundColor: 'white', borderBottom: '2px solid #cc1f1f', padding: '0 24px', minHeight: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <img
+              src="/logo.svg"
+              alt="Master JLPT"
+              style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
+            />
+            <span style={{ fontSize: '20px', fontWeight: 800, lineHeight: 1 }}>
+              <span style={{ color: '#111111' }}>Master</span>
+              <span style={{ color: '#cc1f1f' }}>JLPT</span>
+            </span>
+          </Link>
+          <Button variant="ghost" asChild>
+            <Link href="/">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Home
+            </Link>
+          </Button>
         </header>
 
-        <div className="container max-w-4xl py-12">
+        <div className="max-w-4xl mx-auto px-6 py-12">
           <h1 className="text-4xl font-bold mb-2">Privacy Policy</h1>
           <p className="text-muted-foreground mb-8">Last updated: {new Date().toLocaleDateString()}</p>
 
@@ -40,7 +39,7 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground">
-                Toki English ("we," "our," or "us") operates Master JLPT. This Privacy Policy explains how we collect, 
+                Toki English ("we," "our," or "us") operates Master JLPT. This Privacy Policy explains how we collect,
                 use, disclose, and safeguard your information when you use our service.
               </p>
             </section>
@@ -73,8 +72,8 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">4. Data Storage and Security</h2>
               <p className="text-muted-foreground">
-                Your data is stored securely using Supabase, a PostgreSQL database service. We implement appropriate 
-                technical and organizational measures to protect your personal information against unauthorized access, 
+                Your data is stored securely using Supabase, a PostgreSQL database service. We implement appropriate
+                technical and organizational measures to protect your personal information against unauthorized access,
                 alteration, disclosure, or destruction.
               </p>
             </section>
@@ -105,8 +104,8 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">7. Children's Privacy</h2>
               <p className="text-muted-foreground">
-                Our service is not directed to children under 13. We do not knowingly collect personal information 
-                from children under 13. If you are a parent or guardian and believe your child has provided us with 
+                Our service is not directed to children under 13. We do not knowingly collect personal information
+                from children under 13. If you are a parent or guardian and believe your child has provided us with
                 personal information, please contact us.
               </p>
             </section>
@@ -114,7 +113,7 @@ export default function Privacy() {
             <section>
               <h2 className="text-2xl font-bold mb-4">8. Changes to This Policy</h2>
               <p className="text-muted-foreground">
-                We may update this Privacy Policy from time to time. We will notify you of any changes by posting 
+                We may update this Privacy Policy from time to time. We will notify you of any changes by posting
                 the new Privacy Policy on this page and updating the "Last updated" date.
               </p>
             </section>
@@ -130,30 +129,16 @@ export default function Privacy() {
             <section className="border-t border-border pt-6 mt-8">
               <h2 className="text-2xl font-bold mb-4">JLPT Trademark Notice</h2>
               <p className="text-muted-foreground text-sm">
-                JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
-                Master JLPT is not affiliated with or endorsed by the Japan Foundation or Japan Educational 
-                Exchanges and Services. We are an independent study tool designed to help students prepare 
+                JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services.
+                Master JLPT is not affiliated with or endorsed by the Japan Foundation or Japan Educational
+                Exchanges and Services. We are an independent study tool designed to help students prepare
                 for the JLPT examination.
               </p>
             </section>
           </div>
         </div>
 
-        {/* Footer */}
-        <footer className="border-t border-border bg-card py-8 mt-12">
-          <div className="container text-center space-y-2">
-            <p className="text-sm">
-              Powered by <span className="text-[#cc1f1f] font-bold">Toki English</span>
-            </p>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} Toki English. All rights reserved.
-            </p>
-            <p className="text-xs text-muted-foreground max-w-2xl mx-auto">
-              JLPT is a trademark of the Japan Foundation and Japan Educational Exchanges and Services. 
-              This app is not affiliated with or endorsed by the Japan Foundation.
-            </p>
-          </div>
-        </footer>
+        <Footer />
       </div>
     </>
   );
