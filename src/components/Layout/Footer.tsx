@@ -3,16 +3,16 @@ import Link from "next/link";
 export function Footer() {
   return (
     <footer style={{ backgroundColor: '#111111', padding: '40px 80px' }}>
-      
+
       {/* Top row */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <img
             src="/logo.svg"
             alt="Master JLPT"
-            style={{ height: '28px', width: 'auto', filter: 'brightness(0) invert(1)' }}
+            style={{ height: '36px', width: '36px', display: 'block' }}
           />
           <span style={{ fontSize: '18px', fontWeight: 800 }}>
             <span style={{ color: '#ffffff' }}>Master</span>
@@ -21,18 +21,18 @@ export function Footer() {
         </div>
 
         {/* Links */}
-        <div style={{ display: 'flex', gap: '32px' }}>
+        <div style={{ display: 'flex', gap: '32px', flexWrap: 'wrap' }}>
           <Link href="/" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Home</Link>
           <Link href="/pricing" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Pricing</Link>
           <Link href="/auth/signup" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Sign Up</Link>
+          <Link href="/privacy" style={{ color: '#888888', fontSize: '14px', textDecoration: 'none' }}>Privacy Policy</Link>
         </div>
-
       </div>
 
       {/* Divider */}
       <div style={{ borderTop: '1px solid #222222', margin: '24px 0 16px' }} />
 
-   {/* Bottom row */}
+      {/* Bottom row */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
         <p style={{ fontSize: '13px', margin: 0 }}>
           <span style={{ color: '#666666' }}>Powered by </span>
