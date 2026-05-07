@@ -123,7 +123,7 @@ export default function Privacy() {
               <p className="text-muted-foreground">
                 If you have any questions about this Privacy Policy, please contact us at:
               </p>
-              <p className="text-[#cc1f1f] font-semibold mt-2">privacy@tokienglish.com</p>
+              <p className="text-[#cc1f1f] font-semibold mt-2">info@tokienglish.com</p>
             </section>
 
             <section className="border-t border-border pt-6 mt-8">
