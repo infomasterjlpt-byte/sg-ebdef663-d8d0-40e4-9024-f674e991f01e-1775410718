@@ -145,7 +145,7 @@ export default function Home() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+      <section className="py-12 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-[#111111] mb-4">Everything you need to pass the JLPT</h2>
@@ -178,7 +178,7 @@ export default function Home() {
       </section>
 
       {/* Levels Section */}
-      <section className="py-20 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+      <section className="py-12 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-[#111111] mb-4">Choose your level</h2>
@@ -208,7 +208,7 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="py-20 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
+      <section className="py-12 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
         <div className="container">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">How it works</h2>
@@ -234,7 +234,7 @@ export default function Home() {
       </section>
 
       {/* Reviews Section */}
-      <section className="py-20 bg-white">
+      <section className="py-12 bg-white">
         <div className="container mx-auto px-6">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-black mb-4">What our learners say</h2>
@@ -302,7 +302,7 @@ export default function Home() {
       </section>
 
       {/* Pricing Section */}
-      <section className="py-20 bg-[#f8f8f8]">
+      <section className="py-12 bg-[#f8f8f8]">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-black mb-4">Simple, honest pricing</h2>
