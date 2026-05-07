@@ -146,7 +146,7 @@ export default function Home() {
 
       {/* Features Section */}
       <section className="py-12 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-        <div className="container">
+        <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-[#111111] mb-4">Everything you need to pass the JLPT</h2>
             <p className="text-gray-600 text-lg">Comprehensive tools and resources for every level</p>
@@ -179,7 +179,7 @@ export default function Home() {
 
       {/* Levels Section */}
       <section className="py-12 bg-[#f8f8f8]" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-        <div className="container">
+        <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold text-[#111111] mb-4">Choose your level</h2>
             <p className="text-gray-600 text-lg">Click any level to see the full syllabus and available practice questions.</p>
@@ -209,12 +209,12 @@ export default function Home() {
 
       {/* How It Works */}
       <section className="py-12 bg-white" style={{ paddingLeft: '5%', paddingRight: '5%' }}>
-        <div className="container">
+        <div className="container mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">How it works</h2>
             <p className="text-gray-600 text-lg">Your path to JLPT success in 4 simple steps</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
             {[
               { n: 1, title: "Choose Your Level", desc: "Select your target JLPT level from N5 to N2" },
               { n: 2, title: "Practice Daily", desc: "Answer questions and build your knowledge" },
