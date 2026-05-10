@@ -233,7 +233,7 @@ export default function MockTest() {
       <AppLayout>
         <SEO title="Mock Test - Master JLPT" />
         <BackButton />
-        <div className="container py-16 max-w-2xl">
+     <div className="max-w-2xl mx-auto py-16 px-4">
           <Card>
             <CardContent className="p-8 space-y-6">
               <div className="text-center space-y-4">
@@ -289,7 +289,7 @@ export default function MockTest() {
       <SEO title={`Mock Test - Master JLPT`} />
       <BackButton />
       
-      <div className="container py-8 max-w-3xl">
+     <div className="max-w-3xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
