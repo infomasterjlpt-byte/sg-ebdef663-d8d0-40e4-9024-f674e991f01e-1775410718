@@ -50,6 +50,21 @@ export default function Home() {
     }
   };
 
+  const convertPrice = (jpyAmount: number, curr: string): string => {
+    const rates: Record<string, number> = {
+      JPY: 1,
+      USD: 0.0067,
+      BDT: 0.735,
+      NPR: 0.894,
+      INR: 0.557,
+      VND: 168,
+      LKR: 2.0,
+    };
+    const converted = Math.round(jpyAmount * (rates[curr] || 1));
+    if (curr === "VND" || curr === "JPY") return converted.toLocaleString();
+    return converted.toString();
+  };
+
   const symbol = getCurrencySymbol(currency);
 
   return (
@@ -337,7 +352,7 @@ export default function Home() {
               </div>
               <div className="mb-6 mt-2">
                 <p className="text-[#cc1f1f] text-sm font-semibold uppercase tracking-wide mb-3">MONTHLY</p>
-                <div className="mb-2"><span className="text-5xl font-bold text-black">{symbol}499</span><span className="text-gray-600 text-lg">/month</span></div>
+                <div className="mb-2"><span className="text-5xl font-bold text-black">{symbol}{convertPrice(499, currency)}</span><span className="text-gray-600 text-lg">/month</span></div>
                 <p className="text-gray-600 text-sm">Billed monthly · cancel anytime</p>
               </div>
               <div className="flex-grow mb-6 space-y-3">
@@ -357,8 +372,8 @@ export default function Home() {
               </div>
               <div className="mb-6 mt-2">
                 <p className="text-[#f59e0b] text-sm font-semibold uppercase tracking-wide mb-3">6 MONTHS</p>
-                <div className="mb-2"><span className="text-5xl font-bold text-black">{symbol}2,499</span><span className="text-gray-600 text-lg">/6 months</span></div>
-                <div className="inline-block bg-[#fff8e6] text-[#d97706] text-xs font-semibold px-3 py-1 rounded-full mb-2">Save {symbol}495 vs monthly</div>
+                <div className="mb-2"><span className="text-5xl font-bold text-black">{symbol}{convertPrice(2499, currency)}</span><span className="text-gray-600 text-lg">/6 months</span></div>
+                <div className="inline-block bg-[#fff8e6] text-[#d97706] text-xs font-semibold px-3 py-1 rounded-full mb-2">Save {symbol}{convertPrice(495, currency)} vs monthly</div>
               </div>
               <div className="flex-grow mb-6 space-y-3">
                 {["Everything in Free", "All levels N5 to N2", "Unlimited practice questions", "Full mock tests", "Review system", "Priority support", "6 months at lower price"].map(f => (
