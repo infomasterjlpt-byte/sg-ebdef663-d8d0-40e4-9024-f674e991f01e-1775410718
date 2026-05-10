@@ -1,13 +1,19 @@
 import { buffer } from "micro";
 import type { NextApiRequest, NextApiResponse } from "next";
 import Stripe from "stripe";
-import { supabaseAdmin } from "@/lib/supabase-admin";
+import { createClient } from "@supabase/supabase-js";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2025-01-27.acacia"
 });
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
+
+// Create admin client directly to avoid type issues
+const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export const config = {
   api: {
@@ -54,31 +60,31 @@ export default async function handler(
           return res.status(400).json({ error: "Missing customer email" });
         }
 
-        // ¥499 = 49900 in Stripe (amount in smallest currency unit)
-        // ¥2499 = 249900 in Stripe
         const subscriptionType = amountTotal <= 50000 ? "monthly" : "sixmonth";
 
-        // Find user in profiles table by email
-        const { data: profile, error: findError } = await supabaseAdmin
+        // Find profile by email
+        const { data: profiles, error: findError } = await supabaseAdmin
           .from("profiles")
           .select("id")
           .eq("email", customerEmail)
-          .single();
+          .limit(1);
 
-        if (findError || !profile) {
+        if (findError || !profiles || profiles.length === 0) {
           console.error("Profile not found for email:", customerEmail, findError);
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Update profile with premium status
+        const profileId = profiles[0].id;
+
+        // Update profile
         const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
-  is_premium: true,
-  stripe_customer_id: customerId,
-  subscription_type: subscriptionType
-} as any)
-          .eq("id", profile.id);
+            is_premium: true,
+            stripe_customer_id: customerId,
+            subscription_type: subscriptionType
+          })
+          .eq("id", profileId);
 
         if (updateError) {
           console.error("Failed to update profile:", updateError);
@@ -93,23 +99,25 @@ export default async function handler(
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
-        const { data: profile, error: findError } = await supabaseAdmin
+        const { data: profiles, error: findError } = await supabaseAdmin
           .from("profiles")
-          .select("*")
-.eq("stripe_customer_id" as any, customerId)
-          .single();
+          .select("id, email")
+          .eq("stripe_customer_id", customerId)
+          .limit(1);
 
-        if (findError || !profile) {
-          console.error("Profile not found for customer ID:", customerId, findError);
+        if (findError || !profiles || profiles.length === 0) {
+          console.error("Profile not found for customer ID:", customerId);
           return res.status(404).json({ error: "User not found" });
         }
+
+        const profile = profiles[0];
 
         const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
-  is_premium: false,
-  subscription_type: null
-} as any)
+            is_premium: false,
+            subscription_type: null
+          })
           .eq("id", profile.id);
 
         if (updateError) {
