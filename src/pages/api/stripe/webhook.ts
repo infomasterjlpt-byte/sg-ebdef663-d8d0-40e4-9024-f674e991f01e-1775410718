@@ -9,7 +9,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
 
-// Disable Next.js body parsing to get raw body for Stripe signature verification
 export const config = {
   api: {
     bodyParser: false
@@ -34,7 +33,6 @@ export default async function handler(
   let event: Stripe.Event;
 
   try {
-    // Verify webhook signature
     event = stripe.webhooks.constructEvent(buf, sig, webhookSecret);
   } catch (err) {
     const error = err as Error;
@@ -43,11 +41,10 @@ export default async function handler(
   }
 
   try {
-    // Handle the event
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        
+
         const customerEmail = session.customer_details?.email;
         const customerId = session.customer as string;
         const amountTotal = session.amount_total || 0;
@@ -57,35 +54,35 @@ export default async function handler(
           return res.status(400).json({ error: "Missing customer email" });
         }
 
-        // Determine subscription type based on amount (in yen × 100)
-        // Less than 5000 (¥50.00) = monthly, otherwise annual
-        const subscriptionType = amountTotal < 5000 ? "monthly" : "annual";
+        // ¥499 = 49900 in Stripe (amount in smallest currency unit)
+        // ¥2499 = 249900 in Stripe
+        const subscriptionType = amountTotal <= 50000 ? "monthly" : "sixmonth";
 
-        // Find user by email and update premium status
-        const { data: user, error: findError } = await supabaseAdmin
-          .from("users")
+        // Find user in profiles table by email
+        const { data: profile, error: findError } = await supabaseAdmin
+          .from("profiles")
           .select("id")
           .eq("email", customerEmail)
           .single();
 
-        if (findError || !user) {
-          console.error("User not found for email:", customerEmail, findError);
+        if (findError || !profile) {
+          console.error("Profile not found for email:", customerEmail, findError);
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Update user with premium status and stripe info
+        // Update profile with premium status
         const { error: updateError } = await supabaseAdmin
-          .from("users")
+          .from("profiles")
           .update({
             is_premium: true,
             stripe_customer_id: customerId,
             subscription_type: subscriptionType
           })
-          .eq("id", user.id);
+          .eq("id", profile.id);
 
         if (updateError) {
-          console.error("Failed to update user:", updateError);
-          return res.status(500).json({ error: "Failed to update user" });
+          console.error("Failed to update profile:", updateError);
+          return res.status(500).json({ error: "Failed to update profile" });
         }
 
         console.log(`User ${customerEmail} upgraded to premium (${subscriptionType})`);
@@ -96,33 +93,31 @@ export default async function handler(
         const subscription = event.data.object as Stripe.Subscription;
         const customerId = subscription.customer as string;
 
-        // Find user by Stripe customer ID
-        const { data: user, error: findError } = await supabaseAdmin
-          .from("users")
+        const { data: profile, error: findError } = await supabaseAdmin
+          .from("profiles")
           .select("id, email")
           .eq("stripe_customer_id", customerId)
           .single();
 
-        if (findError || !user) {
-          console.error("User not found for customer ID:", customerId, findError);
+        if (findError || !profile) {
+          console.error("Profile not found for customer ID:", customerId, findError);
           return res.status(404).json({ error: "User not found" });
         }
 
-        // Downgrade user to free tier
         const { error: updateError } = await supabaseAdmin
-          .from("users")
+          .from("profiles")
           .update({
             is_premium: false,
             subscription_type: null
           })
-          .eq("id", user.id);
+          .eq("id", profile.id);
 
         if (updateError) {
-          console.error("Failed to downgrade user:", updateError);
-          return res.status(500).json({ error: "Failed to downgrade user" });
+          console.error("Failed to downgrade profile:", updateError);
+          return res.status(500).json({ error: "Failed to downgrade profile" });
         }
 
-        console.log(`User ${user.email} subscription cancelled`);
+        console.log(`User ${profile.email} subscription cancelled`);
         break;
       }
 
