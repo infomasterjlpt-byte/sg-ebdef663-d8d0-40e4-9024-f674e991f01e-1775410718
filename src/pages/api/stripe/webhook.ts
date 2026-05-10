@@ -95,8 +95,8 @@ export default async function handler(
 
         const { data: profile, error: findError } = await supabaseAdmin
           .from("profiles")
-          .select("id, email")
-          .eq("stripe_customer_id", customerId)
+          .select("*")
+.eq("stripe_customer_id" as any, customerId)
           .single();
 
         if (findError || !profile) {
