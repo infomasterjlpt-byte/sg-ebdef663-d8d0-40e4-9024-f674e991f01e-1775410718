@@ -74,10 +74,10 @@ export default async function handler(
         const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
-            is_premium: true,
-            stripe_customer_id: customerId,
-            subscription_type: subscriptionType
-          })
+  is_premium: true,
+  stripe_customer_id: customerId,
+  subscription_type: subscriptionType
+} as any)
           .eq("id", profile.id);
 
         if (updateError) {
@@ -107,9 +107,9 @@ export default async function handler(
         const { error: updateError } = await supabaseAdmin
           .from("profiles")
           .update({
-            is_premium: false,
-            subscription_type: null
-          })
+  is_premium: false,
+  subscription_type: null
+} as any)
           .eq("id", profile.id);
 
         if (updateError) {
