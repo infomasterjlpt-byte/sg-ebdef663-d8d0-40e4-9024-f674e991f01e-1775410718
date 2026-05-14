@@ -142,7 +142,7 @@ export default function TopicPage() {
     }
 
     const shuffled = (data || []).sort(() => Math.random() - 0.5);
-    const formattedQuestions: Question[] = shuffled.map(q => ({
+    const formattedQuestions: Question[] = shuffled.map((q: any) => ({
       id: q.id,
       question: q.question,
       sentence: q.sentence || null,
