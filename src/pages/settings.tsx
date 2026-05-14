@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { User, Target, LogOut } from "lucide-react";
+import { User, Target, LogOut, AlertTriangle } from "lucide-react";
 
 export default function Settings() {
   const router = useRouter();
@@ -17,6 +17,9 @@ export default function Settings() {
   const [level, setLevel] = useState("");
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelMessage, setCancelMessage] = useState("");
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -62,6 +65,36 @@ export default function Settings() {
     setLoading(false);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
+  }
+
+  async function handleCancelSubscription() {
+    if (!user) return;
+    setCancelLoading(true);
+    setCancelMessage("");
+
+    const res = await fetch("/api/stripe/cancel", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setCancelMessage(data.message);
+      setShowCancelConfirm(false);
+      // Refresh profile
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      if (profile) setUserProfile(profile);
+    } else {
+      setCancelMessage(`Error: ${data.error}`);
+    }
+
+    setCancelLoading(false);
   }
 
   async function handleSignOut() {
@@ -118,6 +151,75 @@ export default function Settings() {
                   </p>
                 )}
               </div>
+
+              {/* Cancel subscription — only shown to premium users */}
+              {isPremium && (
+                <div className="border-t pt-4 space-y-3">
+                  <label className="text-sm font-medium block">Manage Subscription</label>
+
+                  {cancelMessage && (
+                    <div
+                      style={{
+                        background: cancelMessage.startsWith("Error") ? "#fff0f0" : "#f0fff4",
+                        border: `1px solid ${cancelMessage.startsWith("Error") ? "#fca5a5" : "#86efac"}`,
+                        borderRadius: "8px",
+                        padding: "10px 14px",
+                        fontSize: "14px",
+                        color: cancelMessage.startsWith("Error") ? "#991b1b" : "#166534",
+                      }}
+                    >
+                      {cancelMessage}
+                    </div>
+                  )}
+
+                  {!showCancelConfirm ? (
+                    <Button
+                      variant="outline"
+                      className="border-red-300 text-red-600 hover:bg-red-50"
+                      onClick={() => setShowCancelConfirm(true)}
+                    >
+                      Cancel Subscription
+                    </Button>
+                  ) : (
+                    <div
+                      style={{
+                        background: "#fff8e6",
+                        border: "1px solid #f59e0b",
+                        borderRadius: "8px",
+                        padding: "14px 16px",
+                        space: "12px",
+                      }}
+                      className="space-y-3"
+                    >
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
+                        <p className="text-sm text-amber-800">
+                          Your subscription will be cancelled but you will keep Premium access
+                          until the end of your current billing period.
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleCancelSubscription}
+                          disabled={cancelLoading}
+                        >
+                          {cancelLoading ? "Cancelling…" : "Yes, cancel it"}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowCancelConfirm(false)}
+                          disabled={cancelLoading}
+                        >
+                          Keep Premium
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
 
