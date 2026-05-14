@@ -57,7 +57,7 @@ export default function Login() {
                 </span>
               </div>
             </div>
-            <CardTitle className="text-2xl">Welcome back</CardTitle>
+            <CardTitle className="text-2xl">Welcome</CardTitle>
             <CardDescription>
               {plan
                 ? "Sign in to continue to payment"
