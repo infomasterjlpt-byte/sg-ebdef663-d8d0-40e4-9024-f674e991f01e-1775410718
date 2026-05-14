@@ -8,16 +8,15 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
-import { userService } from "@/services/userService";
-import { User, Target, Award, LogOut } from "lucide-react";
+import { User, Target, LogOut } from "lucide-react";
 
 export default function Settings() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [targetLevel, setTargetLevel] = useState("");
-  const [dailyGoal, setDailyGoal] = useState("");
+  const [level, setLevel] = useState("");
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -32,36 +31,37 @@ export default function Settings() {
     setUser(user);
 
     const { data: profile } = await supabase
-      .from("profiles")  // ← was "users"
+      .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
     if (profile) {
       setUserProfile(profile);
-      setTargetLevel(profile.target_level || "");
-      setDailyGoal(profile.daily_goal?.toString() || "20");
+      setLevel(profile.level || "N5");
     }
   }
 
   async function handleSave() {
     if (!user) return;
-
     setLoading(true);
-    await userService.updateUserProfile(user.id, {
-      target_level: targetLevel,
-      daily_goal: parseInt(dailyGoal),
-    });
+    setSaved(false);
+
+    await supabase
+      .from("profiles")
+      .update({ level })
+      .eq("id", user.id);
 
     const { data: profile } = await supabase
-      .from("profiles")  // ← was "users"
+      .from("profiles")
       .select("*")
       .eq("id", user.id)
       .single();
 
     setUserProfile(profile);
     setLoading(false);
-    alert("Settings saved successfully!");
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   }
 
   async function handleSignOut() {
@@ -69,13 +69,13 @@ export default function Settings() {
     router.push("/auth/login");
   }
 
-  if (!user || !userProfile) {
-    return null;
-  }
+  if (!user || !userProfile) return null;
+
+  const isPremium = userProfile.is_premium === true;
 
   return (
     <>
-      <SEO title="Settings - JLPT Master" description="Account settings" />
+      <SEO title="Settings - Master JLPT" description="Account settings" />
       <AppLayout>
         <BackButton />
         <div className="max-w-2xl mx-auto space-y-6">
@@ -84,6 +84,7 @@ export default function Settings() {
             <p className="text-muted-foreground">Manage your profile and preferences</p>
           </div>
 
+          {/* Profile */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -100,26 +101,40 @@ export default function Settings() {
               </div>
               <div>
                 <label className="text-sm font-medium mb-2 block">Subscription</label>
-                <Badge variant={userProfile.is_premium ? "default" : "outline"}>
-                  {userProfile.is_premium ? "Premium" : "Free"}
+                <Badge
+                  variant={isPremium ? "default" : "outline"}
+                  style={isPremium ? { backgroundColor: "#cc1f1f", color: "#fff" } : {}}
+                >
+                  {isPremium
+                    ? `Premium${userProfile.subscription_type ? ` (${userProfile.subscription_type})` : ""}`
+                    : "Free"}
                 </Badge>
+                {!isPremium && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    <a href="/pricing" className="text-[#cc1f1f] hover:underline font-medium">
+                      Upgrade to Premium
+                    </a>{" "}
+                    to unlock N4–N2 and unlimited practice.
+                  </p>
+                )}
               </div>
             </CardContent>
           </Card>
 
+          {/* Study level */}
           <Card>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-accent text-white">
                   <Target className="h-5 w-5" />
                 </div>
-                <CardTitle>Study Preferences</CardTitle>
+                <CardTitle>Study Level</CardTitle>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Target Level</label>
-                <Select value={targetLevel} onValueChange={setTargetLevel}>
+                <label className="text-sm font-medium">Current Level</label>
+                <Select value={level} onValueChange={setLevel}>
                   <SelectTrigger>
                     <SelectValue placeholder="Choose level" />
                   </SelectTrigger>
@@ -127,56 +142,26 @@ export default function Settings() {
                     <SelectItem value="N5">N5 - Beginner</SelectItem>
                     <SelectItem value="N4">N4 - Elementary</SelectItem>
                     <SelectItem value="N3">N3 - Intermediate</SelectItem>
-                    <SelectItem value="N2">N2 - Advanced</SelectItem>
-                    <SelectItem value="N1">N1 - Expert</SelectItem>
+                    <SelectItem value="N2">N2 - Upper Intermediate</SelectItem>
+                    <SelectItem value="N1">N1 - Advanced</SelectItem>
                   </SelectContent>
                 </Select>
+                <p className="text-xs text-muted-foreground">
+                  Changing level will reset your practice progress display.
+                </p>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Daily Goal</label>
-                <Select value={dailyGoal} onValueChange={setDailyGoal}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10 questions/day</SelectItem>
-                    <SelectItem value="20">20 questions/day</SelectItem>
-                    <SelectItem value="30">30 questions/day</SelectItem>
-                    <SelectItem value="50">50 questions/day</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button onClick={handleSave} disabled={loading} className="w-full">
-                {loading ? "Saving..." : "Save Changes"}
+              <Button
+                onClick={handleSave}
+                disabled={loading}
+                className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white"
+              >
+                {loading ? "Saving..." : saved ? "✓ Saved!" : "Save Changes"}
               </Button>
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-accent text-white">
-                  <Award className="h-5 w-5" />
-                </div>
-                <CardTitle>Study Stats</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">{userProfile.streak || 0}</p>
-                  <p className="text-sm text-muted-foreground">Day Streak</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-accent">{userProfile.daily_goal || 20}</p>
-                  <p className="text-sm text-muted-foreground">Daily Goal</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
+          {/* Sign out */}
           <Card className="border-destructive/50">
             <CardHeader>
               <CardTitle className="text-destructive">Danger Zone</CardTitle>
