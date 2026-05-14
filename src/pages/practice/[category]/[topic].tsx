@@ -14,10 +14,11 @@ import { useLevel } from "@/contexts/LevelContext";
 interface Question {
   id: string;
   question: string;
+  sentence: string | null;
   options: string[];
   answer_index: number;
   explanation: string | null;
-  example_sentence: string | null;
+  example_sentence: string | null; // underlined word
 }
 
 interface Profile {
@@ -31,6 +32,29 @@ const categoryInfo: Record<string, { icon: string; title: string }> = {
 };
 
 const FREE_DAILY_LIMIT = 3;
+
+// Renders a sentence with the underlined word highlighted
+function SentenceWithUnderline({ sentence, underlinedWord }: { sentence: string; underlinedWord: string }) {
+  if (!underlinedWord || !sentence.includes(underlinedWord)) {
+    return <p className="text-lg text-gray-800 leading-relaxed">{sentence}</p>;
+  }
+
+  const parts = sentence.split(underlinedWord);
+  return (
+    <p className="text-lg text-gray-800 leading-relaxed">
+      {parts.map((part, i) => (
+        <span key={i}>
+          {part}
+          {i < parts.length - 1 && (
+            <span style={{ borderBottom: "2.5px solid #cc1f1f", paddingBottom: "1px", fontWeight: 700, color: "#cc1f1f" }}>
+              {underlinedWord}
+            </span>
+          )}
+        </span>
+      ))}
+    </p>
+  );
+}
 
 export default function TopicPage() {
   const router = useRouter();
@@ -121,10 +145,11 @@ export default function TopicPage() {
     const formattedQuestions: Question[] = shuffled.map(q => ({
       id: q.id,
       question: q.question,
+      sentence: q.sentence || null,
       options: Array.isArray(q.options) ? (q.options as string[]) : [],
       answer_index: q.answer_index,
       explanation: q.explanation,
-      example_sentence: q.example_sentence
+      example_sentence: q.example_sentence // underlined word
     }));
 
     setQuestions(formattedQuestions);
@@ -313,20 +338,26 @@ export default function TopicPage() {
         </div>
 
         <Card className="p-8">
-          {category === "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
+
+          {/* Reading: show passage */}
+          {category === "reading" && currentQuestion.sentence && currentQuestion.sentence.trim() !== "" && (
             <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
               <p className="text-sm font-medium text-gray-500 mb-2">Passage:</p>
-              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.example_sentence}</p>
+              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.sentence}</p>
             </div>
           )}
 
-          {category !== "reading" && currentQuestion.example_sentence && currentQuestion.example_sentence.trim() !== "" && (
-            <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-              <p className="text-base text-gray-700">{currentQuestion.example_sentence}</p>
+          {/* Kanji / Grammar: show sentence with underlined word */}
+          {category !== "reading" && currentQuestion.sentence && currentQuestion.sentence.trim() !== "" && (
+            <div className="mb-6 p-5 bg-gray-50 border border-gray-200 rounded-xl">
+              <SentenceWithUnderline
+                sentence={currentQuestion.sentence}
+                underlinedWord={currentQuestion.example_sentence || ""}
+              />
             </div>
           )}
 
-          <h2 className="text-2xl font-bold mb-6">{currentQuestion.question}</h2>
+          <h2 className="text-xl font-bold mb-6 text-gray-700">{currentQuestion.question}</h2>
 
           <div className="space-y-3 mb-6">
             {currentQuestion.options.map((option, index) => {
@@ -363,14 +394,15 @@ export default function TopicPage() {
           </div>
 
           {hasAnswered && currentQuestion.explanation && (
-            <div className="p-4 bg-gray-100 rounded-lg mb-6">
-              <p className="text-sm text-gray-700">{currentQuestion.explanation}</p>
+            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
+              <p className="text-sm font-medium text-blue-800 mb-1">Explanation</p>
+              <p className="text-sm text-blue-700">{currentQuestion.explanation}</p>
             </div>
           )}
 
           {hasAnswered && (
             <Button onClick={handleNextQuestion} className="w-full bg-red-600 hover:bg-red-700 text-white" size="lg">
-              {currentIndex < questions.length - 1 ? "Next Question" : "See Results"}
+              {currentIndex < questions.length - 1 ? "Next Question →" : "See Results"}
             </Button>
           )}
         </Card>
