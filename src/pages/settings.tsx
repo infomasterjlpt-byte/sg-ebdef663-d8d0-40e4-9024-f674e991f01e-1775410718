@@ -187,7 +187,6 @@ export default function Settings() {
                         border: "1px solid #f59e0b",
                         borderRadius: "8px",
                         padding: "14px 16px",
-                        space: "12px",
                       }}
                       className="space-y-3"
                     >
