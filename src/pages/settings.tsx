@@ -32,7 +32,7 @@ export default function Settings() {
     setUser(user);
 
     const { data: profile } = await supabase
-      .from("users")
+      .from("profiles")  // ← was "users"
       .select("*")
       .eq("id", user.id)
       .single();
@@ -54,7 +54,7 @@ export default function Settings() {
     });
 
     const { data: profile } = await supabase
-      .from("users")
+      .from("profiles")  // ← was "users"
       .select("*")
       .eq("id", user.id)
       .single();
