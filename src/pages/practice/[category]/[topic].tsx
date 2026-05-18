@@ -18,6 +18,7 @@ interface Question {
   options: string[];
   answer_index: number;
   explanation: string | null;
+  passage: string | null;
   example_sentence: string | null; // underlined word
 }
 
@@ -146,6 +147,7 @@ export default function TopicPage() {
       id: q.id,
       question: q.question,
       sentence: q.sentence || null,
+      passage: q.passage || null,
       options: Array.isArray(q.options) ? (q.options as string[]) : [],
       answer_index: q.answer_index,
       explanation: q.explanation,
@@ -340,10 +342,10 @@ export default function TopicPage() {
         <Card className="p-8">
 
           {/* Reading: show passage */}
-          {category === "reading" && currentQuestion.sentence && currentQuestion.sentence.trim() !== "" && (
+          {category === "reading" && currentQuestion.passage && currentQuestion.passage.trim() !== "" && (
             <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
               <p className="text-sm font-medium text-gray-500 mb-2">Passage:</p>
-              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.sentence}</p>
+              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.passage}</p>
             </div>
           )}
 
