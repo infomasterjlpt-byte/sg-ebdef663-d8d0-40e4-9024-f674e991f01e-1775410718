@@ -19,7 +19,7 @@ interface Question {
   answer_index: number;
   explanation: string | null;
   passage: string | null;
-  example_sentence: string | null; // underlined word
+  example_sentence: string | null;
 }
 
 interface Profile {
@@ -34,15 +34,13 @@ const categoryInfo: Record<string, { icon: string; title: string }> = {
 
 const FREE_DAILY_LIMIT = 3;
 
-// Renders a sentence with the underlined word highlighted
 function SentenceWithUnderline({ sentence, underlinedWord }: { sentence: string; underlinedWord: string }) {
   if (!underlinedWord || !sentence.includes(underlinedWord)) {
-    return <p className="text-lg text-gray-800 leading-relaxed">{sentence}</p>;
+    return <p className="text-base sm:text-lg text-gray-800 leading-relaxed">{sentence}</p>;
   }
-
   const parts = sentence.split(underlinedWord);
   return (
-    <p className="text-lg text-gray-800 leading-relaxed">
+    <p className="text-base sm:text-lg text-gray-800 leading-relaxed">
       {parts.map((part, i) => (
         <span key={i}>
           {part}
@@ -91,17 +89,11 @@ export default function TopicPage() {
     setShowPaywall(false);
 
     const user = await authService.getCurrentUser();
-    if (!user) {
-      router.push("/auth/login");
-      return;
-    }
+    if (!user) { router.push("/auth/login"); return; }
     setUserId(user.id);
 
     const { data: profileData } = await supabase
-      .from("profiles")
-      .select("is_premium")
-      .eq("id", user.id)
-      .single();
+      .from("profiles").select("is_premium").eq("id", user.id).single();
 
     const profile = profileData as Profile | null;
     const premium = profile?.is_premium === true;
@@ -111,36 +103,22 @@ export default function TopicPage() {
     if (!premium) {
       const today = new Date().toISOString().split("T")[0];
       const { data: todaySessions } = await supabase
-        .from("practice_sessions")
-        .select("id")
-        .eq("user_id", user.id)
+        .from("practice_sessions").select("id").eq("user_id", user.id)
         .gte("answered_at", today + "T00:00:00.000Z")
         .lte("answered_at", today + "T23:59:59.999Z");
-
       todayAnswered = todaySessions?.length || 0;
       setTodayCount(todayAnswered);
-
-      if (todayAnswered >= FREE_DAILY_LIMIT) {
-        setShowPaywall(true);
-        setLoading(false);
-        return;
-      }
+      if (todayAnswered >= FREE_DAILY_LIMIT) { setShowPaywall(true); setLoading(false); return; }
     }
 
     const limit = premium ? 20 : FREE_DAILY_LIMIT - todayAnswered;
 
     const { data, error } = await supabase
-      .from("questions")
-      .select("*")
-      .eq("level", level)
-      .eq("category", category)
-      .eq("group", decodeURIComponent(topic))
-      .limit(limit);
+      .from("questions").select("*")
+      .eq("level", level).eq("category", category)
+      .eq("group", decodeURIComponent(topic)).limit(limit);
 
-    if (error) {
-      setLoading(false);
-      return;
-    }
+    if (error) { setLoading(false); return; }
 
     const shuffled = (data || []).sort(() => Math.random() - 0.5);
     const formattedQuestions: Question[] = shuffled.map((q: any) => ({
@@ -151,7 +129,7 @@ export default function TopicPage() {
       options: Array.isArray(q.options) ? (q.options as string[]) : [],
       answer_index: q.answer_index,
       explanation: q.explanation,
-      example_sentence: q.example_sentence // underlined word
+      example_sentence: q.example_sentence
     }));
 
     setQuestions(formattedQuestions);
@@ -163,26 +141,15 @@ export default function TopicPage() {
   const handleAnswerSelect = async (answerIndex: number) => {
     const currentQuestion = questions[currentIndex];
     if (answeredQuestions[currentIndex]) return;
-
     setSelectedAnswer(answerIndex);
     const correct = answerIndex === currentQuestion.answer_index;
-
-    const newAnswered = [...answeredQuestions];
-    newAnswered[currentIndex] = true;
-    setAnsweredQuestions(newAnswered);
-
-    const newCorrect = [...correctAnswers];
-    newCorrect[currentIndex] = correct;
-    setCorrectAnswers(newCorrect);
-
+    const newAnswered = [...answeredQuestions]; newAnswered[currentIndex] = true; setAnsweredQuestions(newAnswered);
+    const newCorrect = [...correctAnswers]; newCorrect[currentIndex] = correct; setCorrectAnswers(newCorrect);
     if (userId && topic) {
       await supabase.from("practice_sessions").insert({
-        user_id: userId,
-        level: level,
-        category: category as string,
+        user_id: userId, level, category: category as string,
         group_name: decodeURIComponent(topic as string),
-        question_id: currentQuestion.id,
-        is_correct: correct,
+        question_id: currentQuestion.id, is_correct: correct,
         answered_at: new Date().toISOString()
       });
       setTodayCount(prev => prev + 1);
@@ -190,78 +157,49 @@ export default function TopicPage() {
   };
 
   const handleNextQuestion = () => {
-    if (!isPremium && todayCount >= FREE_DAILY_LIMIT) {
-      setShowPaywall(true);
-      return;
-    }
-    if (currentIndex < questions.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-      setSelectedAnswer(null);
-    } else {
-      setShowResults(true);
-    }
+    if (!isPremium && todayCount >= FREE_DAILY_LIMIT) { setShowPaywall(true); return; }
+    if (currentIndex < questions.length - 1) { setCurrentIndex(currentIndex + 1); setSelectedAnswer(null); }
+    else setShowResults(true);
   };
 
-  if (loading) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center min-h-screen">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
-        </div>
-      </AppLayout>
-    );
-  }
+  if (loading) return (
+    <AppLayout>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto" />
+      </div>
+    </AppLayout>
+  );
 
   const topicName = topic ? decodeURIComponent(topic as string) : "";
   const categoryData = categoryInfo[category as string] || { icon: "📚", title: String(category) };
 
-  if (showPaywall) {
-    return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-16 max-w-lg text-center">
-          <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏰</div>
-          <h2 className="text-2xl font-bold mb-3">Daily Limit Reached</h2>
-          <p className="text-muted-foreground mb-2">
-            You have used your <strong>3 free questions</strong> for today.
-          </p>
-          <p className="text-muted-foreground mb-6">
-            Upgrade to Premium for unlimited practice questions every day.
-          </p>
-          <div className="flex flex-col gap-3">
-            <Link href="/pricing">
-              <Button className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white" size="lg">
-                Upgrade for Unlimited Access
-              </Button>
-            </Link>
-            <Link href="/dashboard">
-              <Button variant="outline" className="w-full">Go to Dashboard</Button>
-            </Link>
-          </div>
-          <p className="text-sm text-muted-foreground mt-4">
-            Free limit resets every day at midnight.
-          </p>
+  if (showPaywall) return (
+    <AppLayout>
+      <div className="container mx-auto px-4 py-16 max-w-lg text-center">
+        <div style={{ fontSize: '64px', marginBottom: '16px' }}>⏰</div>
+        <h2 className="text-2xl font-bold mb-3">Daily Limit Reached</h2>
+        <p className="text-muted-foreground mb-2">You have used your <strong>3 free questions</strong> for today.</p>
+        <p className="text-muted-foreground mb-6">Upgrade to Premium for unlimited practice questions every day.</p>
+        <div className="flex flex-col gap-3">
+          <Link href="/pricing"><Button className="w-full bg-[#cc1f1f] hover:bg-[#b01b1b] text-white" size="lg">Upgrade for Unlimited Access</Button></Link>
+          <Link href="/dashboard"><Button variant="outline" className="w-full">Go to Dashboard</Button></Link>
         </div>
-      </AppLayout>
-    );
-  }
+        <p className="text-sm text-muted-foreground mt-4">Free limit resets every day at midnight.</p>
+      </div>
+    </AppLayout>
+  );
 
-  if (questions.length === 0) {
-    return (
-      <AppLayout>
-        <div className="container mx-auto px-4 py-8 max-w-4xl">
-          <Card className="p-8 text-center">
-            <h3 className="text-lg font-semibold mb-2">No questions available</h3>
-            <p className="text-muted-foreground mb-4">
-              There are no questions for this group at {level} level yet.
-            </p>
-            <Link href={`/practice/${category}`}>
-              <Button>Back to Groups</Button>
-            </Link>
-          </Card>
-        </div>
-      </AppLayout>
-    );
-  }
+  if (questions.length === 0) return (
+    <AppLayout>
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        <Card className="p-8 text-center">
+          <h3 className="text-lg font-semibold mb-2">No questions available</h3>
+          <p className="text-muted-foreground mb-4">There are no questions for this group at {level} level yet.</p>
+          <Link href={`/practice/${category}`}><Button>Back to Groups</Button></Link>
+        </Card>
+      </div>
+    </AppLayout>
+  );
 
   const currentQuestion = questions[currentIndex];
   const hasAnswered = answeredQuestions[currentIndex];
@@ -274,18 +212,17 @@ export default function TopicPage() {
     let emoji = "😢";
     if (percentage >= 80) emoji = "🎉";
     else if (percentage >= 50) emoji = "🙂";
-
     return (
       <AppLayout>
         <div className="container mx-auto px-4 py-8 max-w-2xl">
-          <Card className="p-8">
+          <Card className="p-6 sm:p-8">
             <div className="text-center">
-              <h1 className="text-3xl font-bold mb-2">Practice Complete!</h1>
-              <p className="text-muted-foreground mb-8">Great work completing this session</p>
-              <div className="mb-8">
-                <div className="text-6xl font-bold text-primary mb-2">{score}/{questions.length}</div>
-                <div className="text-2xl text-muted-foreground mb-4">{percentage}% Correct</div>
-                <div className="text-6xl mb-4">{emoji}</div>
+              <h1 className="text-2xl sm:text-3xl font-bold mb-2">Practice Complete!</h1>
+              <p className="text-muted-foreground mb-6">Great work completing this session</p>
+              <div className="mb-6">
+                <div className="text-5xl sm:text-6xl font-bold text-primary mb-2">{score}/{questions.length}</div>
+                <div className="text-xl sm:text-2xl text-muted-foreground mb-4">{percentage}% Correct</div>
+                <div className="text-5xl mb-4">{emoji}</div>
               </div>
               {!isPremium && (
                 <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '12px 16px', marginBottom: '24px', fontSize: '14px', color: '#92400e' }}>
@@ -293,13 +230,9 @@ export default function TopicPage() {
                   <Link href="/pricing" style={{ color: '#cc1f1f', fontWeight: 600 }}>Upgrade for unlimited →</Link>
                 </div>
               )}
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button onClick={() => loadQuestions()} className="bg-red-600 hover:bg-red-700 text-white" size="lg">
-                  Practice Again
-                </Button>
-                <Link href={`/practice/${category}`}>
-                  <Button variant="outline" size="lg">Back to Groups</Button>
-                </Link>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <Button onClick={() => loadQuestions()} className="bg-red-600 hover:bg-red-700 text-white" size="lg">Practice Again</Button>
+                <Link href={`/practice/${category}`}><Button variant="outline" size="lg" className="w-full sm:w-auto">Back to Groups</Button></Link>
               </div>
             </div>
           </Card>
@@ -310,28 +243,32 @@ export default function TopicPage() {
 
   return (
     <AppLayout>
-      <SEO
-        title={`${topicName} - ${categoryData.title} Practice`}
-        description={`Practice ${categoryData.title} questions`}
-      />
+      <SEO title={`${topicName} - ${categoryData.title} Practice`} description={`Practice ${categoryData.title} questions`} />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-3xl">
-        <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="container mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-8 max-w-3xl">
+
+        {/* Breadcrumb — hidden on very small screens */}
+        <div className="mb-4 hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
           <Link href="/practice" className="hover:text-foreground">Practice</Link>
           <span>/</span>
           <Link href={`/practice/${category}`} className="hover:text-foreground">{categoryData.title}</Link>
           <span>/</span>
-          <span className="text-foreground font-medium">{topicName}</span>
+          <span className="text-foreground font-medium truncate">{topicName}</span>
+        </div>
+
+        {/* Mobile breadcrumb — compact */}
+        <div className="mb-3 flex sm:hidden items-center gap-1 text-xs text-muted-foreground">
+          <Link href={`/practice/${category}`} className="hover:text-foreground">← {categoryData.title}</Link>
         </div>
 
         {!isPremium && (
-          <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 16px', marginBottom: '16px', fontSize: '13px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: '#fff8e6', border: '1px solid #f59e0b', borderRadius: '8px', padding: '8px 12px', marginBottom: '12px', fontSize: '12px', color: '#92400e', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <span><strong>{FREE_DAILY_LIMIT - todayCount} free questions</strong> remaining today</span>
-            <Link href="/pricing" style={{ color: '#cc1f1f', fontWeight: 600, fontSize: '12px' }}>Upgrade →</Link>
+            <Link href="/pricing" style={{ color: '#cc1f1f', fontWeight: 600, fontSize: '12px', whiteSpace: 'nowrap', marginLeft: '8px' }}>Upgrade →</Link>
           </div>
         )}
 
-        <div className="mb-8">
+        <div className="mb-4 sm:mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium">Question {currentIndex + 1} of {questions.length}</span>
             <span className="text-sm text-muted-foreground">{Math.round(progressPercentage)}% Complete</span>
@@ -339,19 +276,20 @@ export default function TopicPage() {
           <Progress value={progressPercentage} className="h-2" />
         </div>
 
-        <Card className="p-8">
+        {/* Question card — reduced padding on mobile */}
+        <Card className="p-4 sm:p-8">
 
-          {/* Reading: show passage */}
+          {/* Reading: passage */}
           {category === "reading" && currentQuestion.passage && currentQuestion.passage.trim() !== "" && (
-            <div className="mb-6 p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
-              <p className="text-sm font-medium text-gray-500 mb-2">Passage:</p>
-              <p className="text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.passage}</p>
+            <div className="mb-4 p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-lg max-h-48 sm:max-h-64 overflow-y-auto">
+              <p className="text-xs font-medium text-gray-500 mb-2">Passage:</p>
+              <p className="text-sm sm:text-base text-gray-900 leading-relaxed whitespace-pre-wrap">{currentQuestion.passage}</p>
             </div>
           )}
 
-          {/* Kanji / Grammar: show sentence with underlined word */}
+          {/* Kanji / Grammar: sentence with underline */}
           {category !== "reading" && currentQuestion.sentence && currentQuestion.sentence.trim() !== "" && (
-            <div className="mb-6 p-5 bg-gray-50 border border-gray-200 rounded-xl">
+            <div className="mb-4 p-3 sm:p-4 bg-gray-50 border border-gray-200 rounded-xl">
               <SentenceWithUnderline
                 sentence={currentQuestion.sentence}
                 underlinedWord={currentQuestion.example_sentence || ""}
@@ -359,9 +297,16 @@ export default function TopicPage() {
             </div>
           )}
 
-          <h2 className="text-xl font-bold mb-6 text-gray-700">{currentQuestion.question}</h2>
+          {/* Question text — word-break for Japanese */}
+          <h2
+            className="text-base sm:text-lg font-bold mb-4 sm:mb-6 text-gray-700"
+            style={{ wordBreak: 'keep-all', overflowWrap: 'break-word' }}
+          >
+            {currentQuestion.question}
+          </h2>
 
-          <div className="space-y-3 mb-6">
+          {/* Answer options */}
+          <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
             {currentQuestion.options.map((option, index) => {
               const isSelected = selectedAnswer === index;
               const isCorrectAnswer = index === currentQuestion.answer_index;
@@ -373,7 +318,7 @@ export default function TopicPage() {
                   key={index}
                   onClick={() => handleAnswerSelect(index)}
                   disabled={hasAnswered}
-                  className={`w-full p-4 text-left rounded-lg border-2 transition-all ${
+                  className={`w-full p-3 sm:p-4 text-left rounded-lg border-2 transition-all ${
                     showCorrect ? "border-green-500 bg-green-50"
                     : showIncorrect ? "border-red-500 bg-red-50"
                     : isSelected ? "border-primary bg-primary/5"
@@ -381,14 +326,14 @@ export default function TopicPage() {
                   } ${hasAnswered ? "cursor-not-allowed" : "cursor-pointer"}`}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <span className="font-semibold text-muted-foreground">{optionLabels[index]}</span>
-                      <span className={showCorrect ? "text-green-700 font-medium" : showIncorrect ? "text-red-700 font-medium" : ""}>
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      <span className="font-semibold text-muted-foreground text-sm">{optionLabels[index]}</span>
+                      <span className={`text-sm sm:text-base ${showCorrect ? "text-green-700 font-medium" : showIncorrect ? "text-red-700 font-medium" : ""}`}>
                         {option}
                       </span>
                     </div>
-                    {showCorrect && <Check className="h-5 w-5 text-green-500" />}
-                    {showIncorrect && <X className="h-5 w-5 text-red-500" />}
+                    {showCorrect && <Check className="h-4 w-4 sm:h-5 sm:w-5 text-green-500 shrink-0" />}
+                    {showIncorrect && <X className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 shrink-0" />}
                   </div>
                 </button>
               );
@@ -396,9 +341,9 @@ export default function TopicPage() {
           </div>
 
           {hasAnswered && currentQuestion.explanation && (
-            <div className="p-4 bg-blue-50 border border-blue-100 rounded-lg mb-6">
-              <p className="text-sm font-medium text-blue-800 mb-1">Explanation</p>
-              <p className="text-sm text-blue-700">{currentQuestion.explanation}</p>
+            <div className="p-3 sm:p-4 bg-blue-50 border border-blue-100 rounded-lg mb-4 sm:mb-6">
+              <p className="text-xs sm:text-sm font-medium text-blue-800 mb-1">Explanation</p>
+              <p className="text-xs sm:text-sm text-blue-700">{currentQuestion.explanation}</p>
             </div>
           )}
 
