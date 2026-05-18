@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface LevelContextType {
   level: string;
+  levelLoaded: boolean;
   setLevel: (level: string) => void;
 }
 
@@ -10,6 +11,7 @@ const LevelContext = createContext<LevelContextType | undefined>(undefined);
 
 export function LevelProvider({ children }: { children: ReactNode }) {
   const [level, setLevelState] = useState<string>("N5");
+  const [levelLoaded, setLevelLoaded] = useState(false);
 
   useEffect(() => {
     loadUserLevel();
@@ -17,9 +19,8 @@ export function LevelProvider({ children }: { children: ReactNode }) {
 
   async function loadUserLevel() {
     const { data: { user } } = await supabase.auth.getUser();
-    
+
     if (user) {
-      // Fetch level from profiles table
       const { data: profile } = await supabase
         .from("profiles")
         .select("level")
@@ -28,26 +29,22 @@ export function LevelProvider({ children }: { children: ReactNode }) {
 
       const userLevel = profile?.level || "N5";
       setLevelState(userLevel);
-      
-      // Also sync to localStorage for compatibility
       localStorage.setItem("selectedLevel", userLevel);
-      
-      console.log("🎯 Loaded user level from profiles:", userLevel);
     } else {
-      // Not logged in, use N5 as default
       setLevelState("N5");
       localStorage.setItem("selectedLevel", "N5");
     }
+
+    setLevelLoaded(true); // ← signal that level is confirmed
   }
 
   const setLevel = (newLevel: string) => {
-    console.log("🔄 Level changed to:", newLevel);
     setLevelState(newLevel);
     localStorage.setItem("selectedLevel", newLevel);
   };
 
   return (
-    <LevelContext.Provider value={{ level, setLevel }}>
+    <LevelContext.Provider value={{ level, levelLoaded, setLevel }}>
       {children}
     </LevelContext.Provider>
   );
