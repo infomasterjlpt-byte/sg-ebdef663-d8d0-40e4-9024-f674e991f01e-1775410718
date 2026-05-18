@@ -219,9 +219,14 @@ export default function TopicPage() {
     let emoji = "😢";
     if (percentage >= 80) emoji = "🎉";
     else if (percentage >= 50) emoji = "🙂";
+
+    const wrongQuestions = questions.filter((_, i) => !correctAnswers[i]);
+
     return (
       <AppLayout>
-        <div className="container mx-auto px-4 py-8 max-w-2xl">
+        <div className="container mx-auto px-4 py-8 max-w-2xl space-y-6">
+
+          {/* Score card */}
           <Card className="p-6 sm:p-8">
             <div className="text-center">
               <h1 className="text-2xl sm:text-3xl font-bold mb-2">Practice Complete!</h1>
@@ -243,6 +248,74 @@ export default function TopicPage() {
               </div>
             </div>
           </Card>
+
+          {/* Wrong answers review */}
+          {wrongQuestions.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+                <span style={{ color: '#cc1f1f' }}>✗</span> Review — {wrongQuestions.length} incorrect {wrongQuestions.length === 1 ? 'answer' : 'answers'}
+              </h2>
+              <div className="space-y-4">
+                {wrongQuestions.map((q, i) => (
+                  <Card key={q.id} className="p-4 sm:p-6 border-l-4" style={{ borderLeftColor: '#cc1f1f' }}>
+                    {/* Sentence / Passage */}
+                    {category !== "reading" && q.sentence && q.sentence.trim() !== "" && (
+                      <div className="mb-3 p-3 bg-gray-50 rounded-lg">
+                        <SentenceWithUnderline
+                          sentence={q.sentence}
+                          underlinedWord={q.example_sentence || ""}
+                        />
+                      </div>
+                    )}
+                    {category === "reading" && q.passage && q.passage.trim() !== "" && (
+                      <div className="mb-3 p-3 bg-gray-50 rounded-lg max-h-40 overflow-y-auto">
+                        <p className="text-xs font-medium text-gray-500 mb-1">Passage:</p>
+                        <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{q.passage}</p>
+                      </div>
+                    )}
+
+                    {/* Question */}
+                    <p className="font-semibold text-sm sm:text-base mb-3" style={{ wordBreak: 'keep-all' }}>{q.question}</p>
+
+                    {/* Options */}
+                    <div className="space-y-2 mb-3">
+                      {q.options.map((option, idx) => {
+                        const isCorrect = idx === q.answer_index;
+                        return (
+                          <div
+                            key={idx}
+                            className={`px-3 py-2 rounded-lg text-sm flex items-center gap-2 ${
+                              isCorrect
+                                ? "bg-green-50 border border-green-400 text-green-800 font-semibold"
+                                : "bg-gray-50 border border-gray-200 text-gray-500"
+                            }`}
+                          >
+                            {isCorrect && <Check className="h-4 w-4 text-green-600 shrink-0" />}
+                            <span>{["A","B","C","D"][idx]}. {option}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Explanation */}
+                    {q.explanation && (
+                      <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                        <p className="text-xs font-medium text-blue-800 mb-1">Explanation</p>
+                        <p className="text-xs text-blue-700">{q.explanation}</p>
+                      </div>
+                    )}
+                  </Card>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {wrongQuestions.length === 0 && (
+            <Card className="p-6 text-center border-green-200 bg-green-50">
+              <p className="text-green-700 font-semibold text-lg">🎉 Perfect score! No wrong answers to review.</p>
+            </Card>
+          )}
+
         </div>
       </AppLayout>
     );
