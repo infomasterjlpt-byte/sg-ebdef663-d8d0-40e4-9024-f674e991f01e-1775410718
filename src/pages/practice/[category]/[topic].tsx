@@ -121,16 +121,23 @@ export default function TopicPage() {
     if (error) { setLoading(false); return; }
 
     const shuffled = (data || []).sort(() => Math.random() - 0.5);
-    const formattedQuestions: Question[] = shuffled.map((q: any) => ({
-      id: q.id,
-      question: q.question,
-      sentence: q.sentence || null,
-      passage: q.passage || null,
-      options: Array.isArray(q.options) ? (q.options as string[]) : [],
-      answer_index: q.answer_index,
-      explanation: q.explanation,
-      example_sentence: q.example_sentence
-    }));
+    const formattedQuestions: Question[] = shuffled.map((q: any) => {
+      const originalOptions: string[] = Array.isArray(q.options) ? q.options : [];
+      const correctAnswer = originalOptions[q.answer_index];
+      // Shuffle options
+      const shuffledOptions = [...originalOptions].sort(() => Math.random() - 0.5);
+      const newAnswerIndex = shuffledOptions.indexOf(correctAnswer);
+      return {
+        id: q.id,
+        question: q.question,
+        sentence: q.sentence || null,
+        passage: q.passage || null,
+        options: shuffledOptions,
+        answer_index: newAnswerIndex,
+        explanation: q.explanation,
+        example_sentence: q.example_sentence
+      };
+    });
 
     setQuestions(formattedQuestions);
     setAnsweredQuestions(new Array(formattedQuestions.length).fill(false));
