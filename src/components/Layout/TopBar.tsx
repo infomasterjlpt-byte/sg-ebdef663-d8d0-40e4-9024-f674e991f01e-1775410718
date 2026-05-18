@@ -22,7 +22,6 @@ export function TopBar() {
   const router = useRouter();
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [isPremium, setIsPremium] = useState(false);
   const [showLevelModal, setShowLevelModal] = useState(false);
   const { currency, setCurrency } = useCurrency();
 
@@ -34,30 +33,15 @@ export function TopBar() {
     const { data } = await supabase.auth.getUser();
     setUser(data.user);
     if (data.user) {
-      // Fetch from profiles table
       const { data: profile } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", data.user.id)
         .single();
 
-      // Fetch from users table for premium status
-      const { data: userData } = await supabase
-        .from("users")
-        .select("*")
-        .eq("id", data.user.id)
-        .single();
-      
       setUserProfile(profile);
-      setIsPremium(userData?.is_premium || false);
-      
-      // Get level from profiles table, fallback to users table
-      const userLevel = profile?.level || userData?.target_level || "N5";
-      
-      // Set in localStorage for global access
+      const userLevel = profile?.level || "N5";
       localStorage.setItem("selectedLevel", userLevel);
-      
-      console.log("👤 User level loaded:", userLevel);
     }
   }
 
@@ -71,29 +55,34 @@ export function TopBar() {
     router.reload();
   };
 
+  const isPremium = userProfile?.is_premium === true;
+  const userLevel = userProfile?.level || "N5";
+
   return (
     <>
-      <header className="border-b border-border bg-card" style={{ minHeight: '64px' }}>
-        <div className="container">
-          <div className="flex items-center justify-between" style={{ minHeight: '64px' }}>
-            <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <header className="border-b border-border bg-card">
+        <div className="px-4 lg:px-6">
+          <div className="flex items-center justify-between h-16">
+
+            {/* Logo */}
+            <Link href="/dashboard" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <img
                 src="/logo.svg"
                 alt="Master JLPT"
-                width={44}
-                height={44}
-                style={{ height: '44px', width: '44px', display: 'block', flexShrink: 0 }}
+                style={{ height: '36px', width: '36px', display: 'block', flexShrink: 0 }}
               />
-              <span style={{ fontSize: '22px', fontWeight: 800, lineHeight: 1 }}>
+              <span style={{ fontSize: '20px', fontWeight: 800, lineHeight: 1 }}>
                 <span style={{ color: '#111111' }}>Master</span>
                 <span style={{ color: '#cc1f1f' }}>JLPT</span>
               </span>
             </Link>
 
-            <div className="flex items-center gap-3">
+            {/* Right side */}
+            <div className="flex items-center gap-2">
+              {/* Currency selector */}
               <Select value={currency} onValueChange={(val) => setCurrency(val as any)}>
                 <SelectTrigger className="w-[100px] h-9">
-                  <Globe className="h-4 w-4 mr-2" />
+                  <Globe className="h-4 w-4 mr-1" />
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -107,35 +96,35 @@ export function TopBar() {
                 </SelectContent>
               </Select>
 
+              {/* Premium badge */}
               {isPremium && (
-                <Badge className="bg-primary text-primary-foreground">Premium</Badge>
+                <Badge className="bg-primary text-primary-foreground hidden sm:inline-flex">Premium</Badge>
               )}
 
-              {user && userProfile?.target_level && (
-                <Badge 
-                  className={`${LEVEL_COLORS[userProfile.target_level]} text-white cursor-pointer hover:opacity-90`}
+              {/* Level badge */}
+              {user && userLevel && (
+                <Badge
+                  className={`${LEVEL_COLORS[userLevel]} text-white cursor-pointer hover:opacity-90 hidden sm:inline-flex`}
                   onClick={() => setShowLevelModal(true)}
                 >
-                  {userProfile.target_level}
+                  {userLevel}
                 </Badge>
               )}
 
+              {/* Avatar */}
               {user && (
-                <>
-                  <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/settings")}>
-                    <AvatarFallback className="bg-primary text-primary-foreground">
-                      {user.email?.[0]?.toUpperCase() || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleSignOut}
-                    className="rounded-full"
-                  >
-                    <LogOut className="h-5 w-5" />
-                  </Button>
-                </>
+                <Avatar className="h-9 w-9 cursor-pointer" onClick={() => router.push("/settings")}>
+                  <AvatarFallback className="bg-primary text-primary-foreground">
+                    {user.email?.[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+              )}
+
+              {/* Sign out */}
+              {user && (
+                <Button variant="ghost" size="icon" onClick={handleSignOut} className="rounded-full">
+                  <LogOut className="h-5 w-5" />
+                </Button>
               )}
             </div>
           </div>
@@ -146,7 +135,7 @@ export function TopBar() {
         <LevelChangeModal
           open={showLevelModal}
           onOpenChange={setShowLevelModal}
-          currentLevel={userProfile.target_level || "N5"}
+          currentLevel={userLevel}
           userId={user.id}
           onLevelChanged={handleLevelChanged}
         />
