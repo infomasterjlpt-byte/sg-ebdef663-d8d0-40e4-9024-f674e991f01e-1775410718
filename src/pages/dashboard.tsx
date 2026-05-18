@@ -10,14 +10,6 @@ import { LevelChangeModal } from "@/components/LevelChangeModal";
 import { BookOpen, Target, TrendingUp, AlertCircle } from "lucide-react";
 import Link from "next/link";
 
-const LEVEL_COLORS: { [key: string]: string } = {
-  N5: "#22c55e",
-  N4: "#14b8a6",
-  N3: "#8b5cf6",
-  N2: "#f59e0b",
-  N1: "#991b1b",
-};
-
 const JLPT_SYLLABUS: { [key: string]: {
   color: string;
   label: string;
@@ -170,27 +162,9 @@ export default function Dashboard() {
   const overallPercent = Math.min(Math.round((totalAnswered / totalQuestions) * 100), 100);
 
   const categories = [
-    {
-      key: "kanji",
-      icon: "漢字",
-      label: "Kanji",
-      description: syllabus.kanji.description,
-      total: syllabus.kanji.total,
-    },
-    {
-      key: "grammar",
-      icon: "文法",
-      label: "Grammar",
-      description: syllabus.grammar.description,
-      total: syllabus.grammar.total,
-    },
-    {
-      key: "reading",
-      icon: "読解",
-      label: "Reading",
-      description: syllabus.reading.description,
-      total: syllabus.reading.total,
-    },
+    { key: "kanji",   icon: "漢字", label: "Kanji",   description: syllabus.kanji.description,   total: syllabus.kanji.total },
+    { key: "grammar", icon: "文法", label: "Grammar", description: syllabus.grammar.description, total: syllabus.grammar.total },
+    { key: "reading", icon: "読解", label: "Reading", description: syllabus.reading.description, total: syllabus.reading.total },
   ];
 
   return (
@@ -203,16 +177,25 @@ export default function Dashboard() {
           <div className="flex items-center justify-between flex-wrap gap-4">
             <div>
               <h1 className="text-3xl font-bold mb-1">My Progress</h1>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center gap-3 flex-wrap">
                 <span className="text-muted-foreground text-sm">Current Level:</span>
                 <Badge style={{ background: levelColor, color: 'white', border: 'none', fontSize: '14px', padding: '4px 12px' }}>
                   {level} — {syllabus.label}
                 </Badge>
                 <button
                   onClick={() => setShowLevelModal(true)}
-                  className="text-sm text-gray-400 hover:text-[#cc1f1f] underline"
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    color: '#ffffff',
+                    background: '#cc1f1f',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    cursor: 'pointer',
+                  }}
                 >
-                  Change level
+                  ✎ Change Level
                 </button>
               </div>
               <p style={{ color: '#888', fontSize: '13px', marginTop: '6px' }}>
@@ -286,7 +269,6 @@ export default function Dashboard() {
 
                 return (
                   <div key={key}>
-                    {/* Category header */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -303,9 +285,7 @@ export default function Dashboard() {
                           {answered} <span style={{ color: '#aaa', fontWeight: 400 }}>/ {total} practiced</span>
                         </p>
                         {answered > 0 && (
-                          <p style={{ fontSize: '12px', color: '#22c55e', margin: 0 }}>
-                            ✓ {accuracy}% accuracy
-                          </p>
+                          <p style={{ fontSize: '12px', color: '#22c55e', margin: 0 }}>✓ {accuracy}% accuracy</p>
                         )}
                         {answered === 0 && (
                           <p style={{ fontSize: '12px', color: '#aaa', margin: 0 }}>Not started yet</p>
@@ -313,7 +293,6 @@ export default function Dashboard() {
                       </div>
                     </div>
 
-                    {/* Progress bar */}
                     <div style={{ width: '100%', background: '#f0f0f0', borderRadius: '99px', height: '10px' }}>
                       <div style={{
                         width: `${percent}%`,
@@ -325,7 +304,6 @@ export default function Dashboard() {
                       }} />
                     </div>
 
-                    {/* Practice link */}
                     <div style={{ marginTop: '6px', textAlign: 'right' }}>
                       <Link href={`/practice/${key}`} style={{ fontSize: '12px', color: '#cc1f1f', textDecoration: 'none', fontWeight: 500 }}>
                         Practice {label} →
