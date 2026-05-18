@@ -30,6 +30,12 @@ const categoryInfo: Record<string, { icon: string; title: string }> = {
 const FREE_DAILY_LIMIT = 3;
 const FREE_LEVEL = "N5";
 
+// Extract leading number from group name e.g. "Group 10: Actions" → 10
+function groupSortKey(name: string): number {
+  const match = name.match(/\d+/);
+  return match ? parseInt(match[0], 10) : 999;
+}
+
 export default function CategoryPage() {
   const router = useRouter();
   const { category } = router.query;
@@ -116,7 +122,8 @@ export default function CategoryPage() {
       })
     );
 
-    setGroups(groupsWithProgress.sort((a, b) => a.group.localeCompare(b.group)));
+    // Sort numerically by the group number (Group 1, 2, 3 ... 10)
+    setGroups(groupsWithProgress.sort((a, b) => groupSortKey(a.group) - groupSortKey(b.group)));
     setLoading(false);
   }
 
