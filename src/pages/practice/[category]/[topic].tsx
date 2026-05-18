@@ -58,7 +58,7 @@ function SentenceWithUnderline({ sentence, underlinedWord }: { sentence: string;
 export default function TopicPage() {
   const router = useRouter();
   const { category, topic } = router.query;
-  const { level } = useLevel();
+  const { level, levelLoaded } = useLevel();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -73,10 +73,10 @@ export default function TopicPage() {
   const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
-    if (category && topic && typeof category === "string" && typeof topic === "string") {
+    if (category && topic && typeof category === "string" && typeof topic === "string" && levelLoaded) {
       loadQuestions();
     }
-  }, [category, topic, level]);
+  }, [category, topic, level, levelLoaded]);
 
   async function loadQuestions() {
     if (!category || !topic || typeof category !== "string" || typeof topic !== "string") return;
